@@ -130,15 +130,22 @@ ALTER TABLE productos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE clientes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sellos_historial ENABLE ROW LEVEL SECURITY;
 
--- Políticas de lectura pública para productos activos (Catálogo Web)
-CREATE POLICY "Productos visibles públicamente"
-    ON productos FOR SELECT
-    USING (activo = true);
+-- Políticas completas para permitir lectura y gestión desde la app web
+DROP POLICY IF EXISTS "Productos visibles públicamente" ON productos;
+CREATE POLICY "Productos visibles públicamente" ON productos FOR SELECT USING (true);
+CREATE POLICY "Permitir insertar productos" ON productos FOR INSERT WITH CHECK (true);
+CREATE POLICY "Permitir actualizar productos" ON productos FOR UPDATE USING (true);
+CREATE POLICY "Permitir eliminar productos" ON productos FOR DELETE USING (true);
 
--- Políticas de lectura para consulta de sellos de clientes
-CREATE POLICY "Clientes pueden consultar su perfil"
-    ON clientes FOR SELECT
-    USING (true);
+-- Políticas para clientes (Vecar Club)
+DROP POLICY IF EXISTS "Clientes pueden consultar su perfil" ON clientes;
+CREATE POLICY "Clientes lectura pública" ON clientes FOR SELECT USING (true);
+CREATE POLICY "Permitir registrar clientes" ON clientes FOR INSERT WITH CHECK (true);
+CREATE POLICY "Permitir actualizar sellos de clientes" ON clientes FOR UPDATE USING (true);
+
+-- Políticas para historial de sellos
+CREATE POLICY "Historial sellos lectura" ON sellos_historial FOR SELECT USING (true);
+CREATE POLICY "Historial sellos inserción" ON sellos_historial FOR INSERT WITH CHECK (true);
 
 -- ==========================================================
 -- DATOS INICIALES SEMILLA (SEED DATA)
