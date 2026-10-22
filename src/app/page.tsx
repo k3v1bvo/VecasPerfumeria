@@ -1,0 +1,164 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { Producto, CartItem } from "@/types/database";
+import { getProductos } from "@/lib/dataService";
+import { Navbar } from "@/components/Navbar";
+import { Hero } from "@/components/Hero";
+import { Catalog } from "@/components/Catalog";
+import { CartDrawer } from "@/components/CartDrawer";
+import { VecarClubModal } from "@/components/VecarClubModal";
+import { ProductModal } from "@/components/ProductModal";
+import { Footer } from "@/components/Footer";
+
+export default function HomePage() {
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isClubModalOpen, setIsClubModalOpen] = useState(false);
+  const [clubModalQuery, setClubModalQuery] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState<Producto | null>(null);
+
+  // Load products & local cart
+  useEffect(() => {
+    const fetchProds = async () => {
+      const data = await getProductos();
+      setProductos(data);
+    };
+    fetchProds();
+
+    // Load cart from storage
+    try {
+      const saved = localStorage.getItem("vecar_cart_v1");
+      if (saved) setCart(JSON.parse(saved));
+    } catch (e) {
+      console.warn("Could not load cart", e);
+    }
+
+    // Check hash for #club
+    if (typeof window !== "undefined" && window.location.hash === "#club") {
+      setIsClubModalOpen(true);
+    }
+  }, []);
+
+  // Save cart to local storage
+  const saveCart = (newCart: CartItem[]) => {
+    setCart(newCart);
+    try {
+      localStorage.setItem("vecar_cart_v1", JSON.stringify(newCart));
+    } catch (e) {
+      console.warn("Could not save cart", e);
+    }
+  };
+
+  // Cart operations
+  const handleAddToCart = (producto: Producto) => {
+    const existsIndex = cart.findIndex((item) => item.producto.id === producto.id);
+    let updated: CartItem[];
+    if (existsIndex >= 0) {
+      updated = cart.map((item, idx) =>
+        idx === existsIndex ? { ...item, cantidad: item.cantidad + 1 } : item
+      );
+    } else {
+      updated = [...cart, { producto, cantidad: 1 }];
+    }
+    saveCart(updated);
+  };
+
+  const handleUpdateQuantity = (productId: string, delta: number) => {
+    const updated = cart
+      .map((item) => {
+        if (item.producto.id === productId) {
+          const newQty = item.cantidad + delta;
+          return newQty > 0 ? { ...item, cantidad: newQty } : null;
+        }
+        return item;
+      })
+      .filter(Boolean) as CartItem[];
+
+    saveCart(updated);
+  };
+
+  const handleRemoveItem = (productId: string) => {
+    const updated = cart.filter((item) => item.producto.id !== productId);
+    saveCart(updated);
+  };
+
+  const handleClearCart = () => {
+    saveCart([]);
+  };
+
+  const totalCartCount = cart.reduce((acc, item) => acc + item.cantidad, 0);
+
+  // Quick lookup from Hero
+  const handleHeroCheckPhone = (phone: string) => {
+    setClubModalQuery(phone);
+    setIsClubModalOpen(true);
+  };
+
+  const handleScrollToCatalog = () => {
+    const el = document.getElementById("catalogo");
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-[#04110d] selection:bg-gold-500 selection:text-emerald-950">
+      
+      {/* NAVBAR */}
+      <Navbar
+        cartCount={totalCartCount}
+        onOpenCart={() => setIsCartOpen(true)}
+        onOpenClubModal={() => {
+          setClubModalQuery("");
+          setIsClubModalOpen(true);
+        }}
+      />
+
+      {/* HERO SECTION (Option 1 Design) */}
+      <Hero
+        onCheckPhone={handleHeroCheckPhone}
+        onExploreCatalog={handleScrollToCatalog}
+      />
+
+      {/* INTERACTIVE CATALOG */}
+      <Catalog
+        productos={productos}
+        onAddToCart={handleAddToCart}
+        onOpenProductModal={(p) => setSelectedProduct(p)}
+      />
+
+      {/* FOOTER */}
+      <Footer
+        onOpenClubModal={() => {
+          setClubModalQuery("");
+          setIsClubModalOpen(true);
+        }}
+      />
+
+      {/* CART DRAWER */}
+      <CartDrawer
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        items={cart}
+        onUpdateQuantity={handleUpdateQuantity}
+        onRemoveItem={handleRemoveItem}
+        onClearCart={handleClearCart}
+      />
+
+      {/* VECAR CLUB MODAL */}
+      <VecarClubModal
+        isOpen={isClubModalOpen}
+        onClose={() => setIsClubModalOpen(false)}
+        initialQuery={clubModalQuery}
+      />
+
+      {/* PRODUCT DETAILS MODAL */}
+      <ProductModal
+        producto={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+        onAddToCart={handleAddToCart}
+      />
+
+    </div>
+  );
+}
