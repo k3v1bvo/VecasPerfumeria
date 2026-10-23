@@ -1,20 +1,22 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sparkles, MapPin, Send, ExternalLink, MessageCircle, ArrowRight, Award } from "lucide-react";
-import { Interactive3DCard } from "./Interactive3DCard";
+import { Sparkles, MapPin, MessageCircle, ArrowRight, Award } from "lucide-react";
+import { PhysicalCard3D } from "./PhysicalCard3D";
 import { WaxSealBadge } from "./WaxSealBadge";
 
 interface HeroProps {
   onCheckPhone: (phone: string) => void;
   onExploreCatalog: () => void;
   onOpenClubModal: () => void;
+  onOpenMapsModal?: () => void;
 }
 
 export const Hero: React.FC<HeroProps> = ({
   onCheckPhone,
   onExploreCatalog,
   onOpenClubModal,
+  onOpenMapsModal,
 }) => {
   const [quickPhone, setQuickPhone] = useState("");
 
@@ -26,226 +28,119 @@ export const Hero: React.FC<HeroProps> = ({
   };
 
   return (
-    <section id="inicio" className="relative w-full pt-6 pb-16 lg:py-16 overflow-hidden">
+    <section id="inicio" className="relative w-full pt-8 pb-16 lg:py-20 overflow-hidden">
       
-      {/* Ambient background glows */}
-      <div className="absolute top-10 right-5 w-96 h-96 bg-gold-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 left-10 w-[500px] h-[500px] bg-emerald-600/15 rounded-full blur-3xl pointer-events-none" />
-
-      {/* Subtle Golden decorative flow lines */}
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none opacity-20"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M-100,200 C300,50 600,450 1200,100 C1500,-50 1800,250 2000,150"
-          fill="none"
-          stroke="url(#goldGradientLine)"
-          strokeWidth="1.2"
-        />
-        <path
-          d="M-50,320 C400,180 700,520 1300,220 C1600,100 1900,400 2200,250"
-          fill="none"
-          stroke="url(#goldGradientLine)"
-          strokeWidth="0.8"
-        />
-        <defs>
-          <linearGradient id="goldGradientLine" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#d4af37" stopOpacity="0.1" />
-            <stop offset="50%" stopColor="#f7e6a7" stopOpacity="0.8" />
-            <stop offset="100%" stopColor="#d4af37" stopOpacity="0.1" />
-          </linearGradient>
-        </defs>
-      </svg>
+      {/* Ondas Doradas y Turquesa de Fondo */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        <svg className="w-full h-full object-cover opacity-30" viewBox="0 0 1440 800" fill="none" preserveAspectRatio="xMidYMid slice">
+          <circle cx="250" cy="400" r="360" fill="#245861" filter="blur(110px)" opacity="0.5" />
+          <circle cx="1150" cy="350" r="320" fill="#C9A050" filter="blur(140px)" opacity="0.18" />
+          <path d="M-100 680 C 120 420, 380 120, 760 -40" stroke="#C9A050" strokeWidth="2" opacity="0.5" />
+          <path d="M-80 760 C 180 510, 410 180, 880 -20" stroke="#DFB968" strokeWidth="1.2" opacity="0.35" />
+          <path d="M-120 220 C 140 520, 480 740, 960 820" stroke="#2D6E78" strokeWidth="14" opacity="0.2" strokeLinecap="round" />
+          <path d="M-90 250 C 160 540, 490 750, 980 830" stroke="#C9A050" strokeWidth="1.8" opacity="0.55" />
+          <path d="M850 -60 C 1120 220, 1290 520, 1520 760" stroke="#C9A050" strokeWidth="1.4" opacity="0.35" />
+        </svg>
+      </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
           
           {/* ========================================================= */}
-          {/* LEFT COLUMN: TITLE, CTAs, 3D LOYALTY CARD & LOCATION CARD */}
+          {/* COLUMNA IZQUIERDA: PRESENTACIÓN DE MARCA Y LLAMADOS A LA ACCIÓN */}
           {/* ========================================================= */}
-          <div className="lg:col-span-7 flex flex-col space-y-6 sm:space-y-7">
+          <div className="lg:col-span-6 flex flex-col space-y-6 sm:space-y-7 text-left">
             
-            {/* BADGE */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-emerald-subtle w-fit border border-gold-400/30">
-              <Sparkles className="w-3.5 h-3.5 text-gold-400 animate-spin" style={{ animationDuration: '6s' }} />
-              <span className="text-xs font-medium tracking-wider text-gold-300 uppercase">
-                Colección Exclusiva 2026 • Cochabamba
+            {/* BADGE DE UBICACIÓN Y LUJO */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1E3B3F]/90 border border-[#C9A050]/40 w-fit shadow-md">
+              <span className="w-2 h-2 rounded-full bg-[#C9A050] animate-pulse" />
+              <span className="text-xs font-semibold tracking-widest uppercase text-[#F1DCA7]">
+                Cochabamba • Av. Heroínas
               </span>
             </div>
 
-            {/* HEADLINE */}
+            {/* HEADLINE PRINCIPAL */}
             <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.12]">
-              Encuentra la fragancia <br />
-              <span className="gold-text-shimmer">que define tu esencia</span>
+              La esencia del lujo en cada gota de{" "}
+              <span className="italic font-bold gold-gradient-text block mt-1">
+                Vecar Perfumería
+              </span>
             </h1>
 
             {/* SUBTITLE */}
             <p className="text-base sm:text-lg text-emerald-100/80 font-light max-w-xl leading-relaxed">
-              Perfumería de autor, fragancias de tendencia y sistema de fidelidad en Cochabamba.
+              Descubre fragancias de alta fijación con <strong className="text-[#DFB968] font-semibold">40% de esencia pura</strong>, perfumes árabes de tendencia y presentaciones exclusivas de <strong className="text-white font-semibold">50ML</strong>. Por cada compra de 50ML acumulas un sello oficial en tu <span className="font-script text-2xl text-[#DFB968]">Tarjeta de Fidelidad</span>.
             </p>
 
             {/* ACTION BUTTONS */}
-            <div className="flex flex-wrap items-center gap-4 pt-1">
+            <div className="flex flex-wrap items-center gap-3.5 pt-1">
               <button
                 onClick={onExploreCatalog}
-                className="px-7 py-3.5 rounded-full text-sm font-semibold tracking-wider uppercase text-emerald-950 bg-gold-gradient hover:bg-gold-gradient-hover shadow-gold-glow hover:shadow-gold-glow-lg transition-all duration-300 transform active:scale-95 flex items-center gap-2"
+                className="gold-gradient-btn px-7 py-3.5 rounded-xl font-bold text-xs sm:text-sm tracking-wide uppercase flex items-center gap-2.5 shadow-xl cursor-pointer active:scale-95"
               >
-                <span>Explorar Catálogo</span>
+                <span>Explorar Fragancias</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
-              <a
-                href="https://wa.me/59175462800?text=Hola%20Vecar%20Perfumer%C3%ADa!%20Vengo%20desde%20la%20p%C3%A1gina%20web%20y%20deseo%20asesoramiento%20personalizado."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-6 py-3.5 rounded-full text-sm font-semibold tracking-wider text-gold-300 hover:text-white glass-emerald border border-gold-400/50 hover:border-gold-300 transition-all duration-300 transform active:scale-95 flex items-center gap-2"
+              <button
+                onClick={onOpenClubModal}
+                className="px-6 py-3.5 rounded-xl font-semibold text-xs sm:text-sm border border-[#C9A050]/50 bg-[#163034]/80 hover:bg-[#1E3B3F] text-[#F1DCA7] transition-all flex items-center gap-2 cursor-pointer shadow-md active:scale-95"
               >
-                <MessageCircle className="w-4 h-4 text-gold-400" />
-                <span>WhatsApp Directo</span>
-              </a>
+                <span className="w-3 h-3 rounded-full plum-stamp-surface inline-block border border-purple-200/40" />
+                <span>Mi Tarjeta de Fidelidad</span>
+              </button>
             </div>
 
-            {/* --------------------------------------------------------- */}
-            {/* TARJETA 3D INTERACTIVA VECAR CLUB (Apple Fluid Tilt)      */}
-            {/* --------------------------------------------------------- */}
-            <div className="space-y-3">
-              <Interactive3DCard onOpenClubModal={onOpenClubModal} />
-
-              {/* Quick Input to check customer stamps */}
-              <form onSubmit={handleQuickSubmit} className="relative flex items-center pt-1">
+            {/* BUSCADOR RÁPIDO DE CLIENTE / SELLOS */}
+            <div className="pt-1 max-w-lg">
+              <form onSubmit={handleQuickSubmit} className="relative flex items-center">
                 <input
                   type="text"
                   value={quickPhone}
                   onChange={(e) => setQuickPhone(e.target.value)}
                   placeholder="Ingresa tu celular para consultar tus sellos..."
-                  className="w-full pl-5 pr-28 py-3 rounded-full text-xs sm:text-sm bg-emerald-950/80 border border-gold-400/40 text-white placeholder-emerald-200/50 focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all shadow-inner"
+                  className="w-full pl-5 pr-28 py-3 rounded-xl text-xs sm:text-sm bg-[#091719]/90 border border-[#C9A050]/40 text-white placeholder-gray-400 focus:outline-none focus:border-[#C9A050] focus:ring-1 focus:ring-[#C9A050] transition-all shadow-inner"
                 />
                 <button
                   type="submit"
-                  className="absolute right-1.5 px-5 py-2 rounded-full text-xs font-bold tracking-wider uppercase text-emerald-950 bg-gold-gradient hover:bg-gold-gradient-hover shadow-md transition-all active:scale-95"
+                  className="absolute right-1.5 px-4 py-2 rounded-lg text-xs font-bold tracking-wider uppercase text-[#091719] bg-gradient-to-r from-[#DFB968] to-[#C9A050] hover:brightness-110 shadow-md transition-all active:scale-95 cursor-pointer"
                 >
                   Consultar
                 </button>
               </form>
             </div>
 
-            {/* --------------------------------------------------------- */}
-            {/* VISÍTANOS EN COCHABAMBA CARD                               */}
-            {/* --------------------------------------------------------- */}
-            <div className="p-4 sm:p-5 rounded-2xl glass-emerald-subtle border border-gold-400/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              
-              <div className="space-y-1.5">
-                <h4 className="text-xs font-bold tracking-[0.16em] uppercase text-gold-400 flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-gold-400" />
-                  <span>VISÍTANOS EN COCHABAMBA</span>
-                </h4>
-                <p className="text-xs sm:text-sm text-gray-200 font-light">
-                  Av. Heroínas entre Av. Oquendo y Calle 16 de Julio
-                </p>
-                <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-gold-300">
-                  <span className="flex items-center gap-1">
-                    <span className="font-semibold">WhatsApp:</span> 75462800
-                  </span>
-                  <span className="text-gold-500/50">•</span>
-                  <span className="flex items-center gap-1">
-                    <span className="font-semibold">TikTok:</span> @Perfumeria.Vecar
-                  </span>
-                </div>
+            {/* ESTADÍSTICAS DE VALOR */}
+            <div className="grid grid-cols-3 gap-4 pt-4 border-t gold-divider max-w-lg">
+              <div>
+                <p className="font-serif text-2xl sm:text-3xl font-bold text-[#DFB968]">50 ML</p>
+                <p className="text-[11px] text-gray-300 mt-0.5">Suma 1 Sello Oficial</p>
               </div>
-
-              {/* MINI MAP CARD (Interactive Google Maps trigger) */}
-              <a
-                href="https://maps.google.com/?q=Av.+Heroinas+y+Oquendo+Cochabamba"
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Abrir ubicación en Google Maps"
-                className="relative w-full sm:w-28 h-16 sm:h-20 rounded-xl overflow-hidden border border-gold-400/40 bg-emerald-950 group shrink-0 flex items-center justify-center shadow-inner hover:border-gold-300 transition-all"
-              >
-                {/* Map grid lines simulation */}
-                <div className="absolute inset-0 opacity-40 bg-[radial-gradient(#d4af37_1px,transparent_1px)] [background-size:12px_12px]" />
-                <div className="absolute top-1/2 left-0 right-0 h-[1.5px] bg-gold-400/30" />
-                <div className="absolute top-0 bottom-0 left-1/3 w-[1.5px] bg-gold-400/30" />
-                <div className="relative z-10 flex flex-col items-center gap-1">
-                  <div className="w-6 h-6 rounded-full bg-gold-400 text-emerald-950 flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform">
-                    <MapPin className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-[9px] font-semibold text-gold-200 uppercase tracking-wider">
-                    Ver Mapa
-                  </span>
-                </div>
-              </a>
-
+              <div className="border-l gold-divider pl-4">
+                <p className="font-serif text-2xl sm:text-3xl font-bold text-[#DFB968]">+12 Hrs</p>
+                <p className="text-[11px] text-gray-300 mt-0.5">Fijación en Piel</p>
+              </div>
+              <div className="border-l gold-divider pl-4">
+                <p className="font-serif text-2xl sm:text-3xl font-bold text-[#DFB968]">10 Sellos</p>
+                <p className="text-[11px] text-gray-300 mt-0.5">Premio de Fidelidad</p>
+              </div>
             </div>
 
           </div>
 
           {/* ========================================================= */}
-          {/* RIGHT COLUMN: LUXURY PERFUME SHOWCASE + 3D WAX SEAL BADGE */}
+          {/* COLUMNA DERECHA: RÉPLICA 3D DE LA TARJETA FÍSICA DE VECAR */}
           {/* ========================================================= */}
-          <div className="lg:col-span-5 flex flex-col items-center justify-center relative">
+          <div className="lg:col-span-6 flex flex-col items-center justify-center relative">
             
-            {/* FLOATING 3D WAX SEAL BADGE (From Opción 8) */}
-            <div className="absolute -top-6 -right-2 sm:-right-4 z-30 animate-float-slow">
+            {/* FLOATING 3D WAX SEAL BADGE */}
+            <div className="absolute -top-7 -right-2 sm:-right-4 z-30 animate-float-slow hidden sm:block">
               <WaxSealBadge onOpenClubModal={onOpenClubModal} />
             </div>
 
-            <div className="relative w-full max-w-md aspect-[4/5] rounded-3xl p-3 sm:p-4 bg-gradient-to-b from-gold-400/30 via-gold-500/10 to-emerald-900/40 border-2 border-gold-400/60 shadow-gold-glow-lg group">
-              
-              {/* Inner Luxury Frame */}
-              <div className="relative w-full h-full rounded-2xl overflow-hidden bg-gradient-to-b from-[#08221b] via-[#051813] to-[#020b08] border border-gold-400/40 flex flex-col items-center justify-center p-6 text-center">
-                
-                {/* Floating Bokeh / Lights */}
-                <div className="absolute top-8 left-8 w-16 h-16 rounded-full bg-gold-300/20 blur-xl animate-pulse" />
-                <div className="absolute bottom-12 right-10 w-24 h-24 rounded-full bg-emerald-400/20 blur-2xl" />
+            {/* TARJETA FÍSICA VECTORIAL CON VOLTEO Y CROQUIS OFICIAL */}
+            <PhysicalCard3D onOpenClubModal={onOpenClubModal} />
 
-                {/* Botanical leaves accent overlay (SVG) */}
-                <svg
-                  className="absolute inset-0 w-full h-full pointer-events-none opacity-25 mix-blend-screen"
-                  viewBox="0 0 400 500"
-                  fill="none"
-                  stroke="#d4af37"
-                >
-                  <path d="M20,480 Q60,350 20,220 Q-20,100 80,40" strokeWidth="1.5" />
-                  <path d="M380,480 Q340,350 380,220 Q420,100 320,40" strokeWidth="1.5" />
-                  <circle cx="50" cy="180" r="3" fill="#d4af37" />
-                  <circle cx="350" cy="180" r="3" fill="#d4af37" />
-                  <circle cx="200" cy="50" r="2.5" fill="#f7e6a7" />
-                </svg>
-
-                {/* Perfume Bottle Image Container */}
-                <div className="relative z-10 w-56 sm:w-64 h-72 sm:h-80 rounded-2xl overflow-hidden shadow-2xl border border-gold-400/50 transform group-hover:scale-[1.03] transition-transform duration-500">
-                  <img
-                    src="https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&w=800&q=80"
-                    alt="Perfume Exclusivo 50ml Vecar Perfumería"
-                    className="w-full h-full object-cover object-center"
-                  />
-                  
-                  {/* Luxury 50ml Golden Label Badge on bottle */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end justify-center pb-6">
-                    <div className="px-5 py-2 rounded-lg bg-emerald-950/90 border border-gold-400/70 shadow-lg backdrop-blur-sm">
-                      <p className="text-xs font-serif font-bold tracking-[0.25em] text-gold-300 uppercase">
-                        VECAR • 50 ML
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Floating Sparkle Elements */}
-                <div className="absolute top-6 left-6 flex items-center gap-1 px-3 py-1 rounded-full bg-gold-400/20 border border-gold-400/50 backdrop-blur-md">
-                  <Sparkles className="w-3.5 h-3.5 text-gold-300 animate-spin" style={{ animationDuration: '4s' }} />
-                  <span className="text-[10px] font-bold text-gold-200 tracking-wider">
-                    ALTA CONCENTRACIÓN
-                  </span>
-                </div>
-
-                {/* Bottom subtle label */}
-                <p className="mt-4 text-[11px] font-light tracking-[0.2em] text-gold-300/80 uppercase z-10">
-                  Fragancias de Autor & Inspiración Nicho
-                </p>
-
-              </div>
-            </div>
           </div>
 
         </div>

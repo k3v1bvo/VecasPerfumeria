@@ -7,9 +7,12 @@ import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
 import { BentoShowcase } from "@/components/BentoShowcase";
 import { Catalog } from "@/components/Catalog";
+import { LoyaltySimulatorSection } from "@/components/LoyaltySimulatorSection";
+import { OfficialLocationSection } from "@/components/OfficialLocationSection";
 import { CartDrawer } from "@/components/CartDrawer";
 import { VecarClubModal } from "@/components/VecarClubModal";
 import { ProductModal } from "@/components/ProductModal";
+import { GoogleMapsModal } from "@/components/GoogleMapsModal";
 import { FaqSection } from "@/components/FaqSection";
 import { Footer } from "@/components/Footer";
 import { getPriceForSize } from "@/lib/bottleSizes";
@@ -19,6 +22,7 @@ export default function HomePage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isClubModalOpen, setIsClubModalOpen] = useState(false);
+  const [isMapsModalOpen, setIsMapsModalOpen] = useState(false);
   const [clubModalQuery, setClubModalQuery] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Producto | null>(null);
   const [catalogCategory, setCatalogCategory] = useState<string>("Todos");
@@ -132,6 +136,7 @@ export default function HomePage() {
           setClubModalQuery("");
           setIsClubModalOpen(true);
         }}
+        onOpenMapsModal={() => setIsMapsModalOpen(true)}
       />
 
       {/* HERO SECTION (Option 1 Design with 3D Tilt Card and 3D Wax Seal) */}
@@ -142,6 +147,7 @@ export default function HomePage() {
           setClubModalQuery("");
           setIsClubModalOpen(true);
         }}
+        onOpenMapsModal={() => setIsMapsModalOpen(true)}
       />
 
       {/* BENTO GRID SHOWCASE (Universos Olfativos & Tendencias 2026) */}
@@ -158,6 +164,19 @@ export default function HomePage() {
         onSelectCategory={setCatalogCategory}
       />
 
+      {/* MÓDULO INTERACTIVO DE FIDELIDAD 50ML (Simulador Oficial de Sellos) */}
+      <LoyaltySimulatorSection
+        onOpenClubModal={() => {
+          setClubModalQuery("");
+          setIsClubModalOpen(true);
+        }}
+      />
+
+      {/* CROQUIS VECTORIAL URBANO & VISÍTANOS COCHABAMBA */}
+      <OfficialLocationSection
+        onOpenGoogleMapsModal={() => setIsMapsModalOpen(true)}
+      />
+
       {/* FAQ SECTION (Preguntas Frecuentes del Catálogo) */}
       <FaqSection />
 
@@ -167,6 +186,7 @@ export default function HomePage() {
           setClubModalQuery("");
           setIsClubModalOpen(true);
         }}
+        onOpenMapsModal={() => setIsMapsModalOpen(true)}
       />
 
       {/* CART DRAWER */}
@@ -193,6 +213,13 @@ export default function HomePage() {
         onAddToCart={handleAddToCart}
       />
 
+      {/* GOOGLE MAPS INTERACTIVE MODAL */}
+      <GoogleMapsModal
+        isOpen={isMapsModalOpen}
+        onClose={() => setIsMapsModalOpen(false)}
+      />
+
     </div>
   );
 }
+

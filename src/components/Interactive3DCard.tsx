@@ -4,6 +4,7 @@ import React, { useState, useRef } from "react";
 import { Cliente } from "@/types/database";
 import { Award, Sparkles, Gift, CheckCircle2, ShieldCheck, Wifi } from "lucide-react";
 import { calculatePremioSugerido } from "@/lib/loyaltyRules";
+import { VecarEmblem } from "./VecarLogo";
 
 interface Interactive3DCardProps {
   cliente?: Cliente | null;
@@ -139,7 +140,7 @@ export const Interactive3DCard: React.FC<Interactive3DCardProps> = ({
           <div className="flex items-center justify-between pb-3.5 border-b border-gold-400/25">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full border border-gold-400/70 bg-gradient-to-br from-gold-300/20 via-emerald-950 to-emerald-900 flex items-center justify-center shadow-gold-glow">
-                <Award className="w-5 h-5 text-gold-300" />
+                <VecarEmblem className="w-7 h-6 text-gold-300" />
               </div>
               <div>
                 <span className="text-[10px] font-mono tracking-[0.25em] text-gold-400 uppercase block font-semibold">
@@ -182,19 +183,17 @@ export const Interactive3DCard: React.FC<Interactive3DCardProps> = ({
                     key={idx}
                     className={`relative w-full aspect-square rounded-2xl flex flex-col items-center justify-center transition-all duration-300 shadow-sm ${
                       isFilled
-                        ? "bg-gradient-to-b from-[#7e2238] to-[#4c1220] border-2 border-gold-400 text-gold-200 shadow-gold-glow transform hover:scale-110"
+                        ? "bg-gradient-to-b from-[#6b1e32] via-[#4e265b] to-[#371842] border-2 border-purple-300/80 text-white shadow-gold-glow transform hover:scale-110"
                         : isGift
                         ? "border-2 border-dashed border-gold-400 bg-gold-400/10 text-gold-400 animate-pulse"
                         : "border border-dashed border-gold-400/40 bg-emerald-950/40 text-gold-400/40"
                     }`}
                   >
                     {isFilled ? (
-                      <>
-                        <span className="text-[9px] font-bold text-gold-200 tracking-tighter">
-                          {idx === 9 ? `🎁 ${premio.tamanoMl}ml` : "Sello"}
-                        </span>
-                        <span className="text-[7px] text-gold-400/90 font-mono">#{stampNum}</span>
-                      </>
+                      <div className="flex flex-col items-center justify-center p-0.5">
+                        <VecarEmblem className="w-5 h-4 text-purple-200 drop-shadow-sm" />
+                        <span className="text-[7.5px] font-black text-white font-mono leading-none mt-0.5">50ML</span>
+                      </div>
                     ) : isGift ? (
                       <div className="flex flex-col items-center">
                         <Gift className="w-4 h-4 text-gold-400" />
@@ -208,6 +207,7 @@ export const Interactive3DCard: React.FC<Interactive3DCardProps> = ({
               })}
             </div>
           </div>
+
 
           {/* CARD FOOTER: MEMBER NUMBER & STATUS BADGE */}
           <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs border-t border-gold-400/20">

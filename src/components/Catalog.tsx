@@ -13,9 +13,15 @@ import {
   SlidersHorizontal,
   Flame,
   RotateCcw,
-  Tag
+  Tag,
+  Printer,
+  Layers,
+  Maximize2
 } from "lucide-react";
 import { generatePdfCatalog } from "@/lib/pdfCatalogGenerator";
+import { BottleComparisonModal } from "./BottleComparisonModal";
+import { PrintCatalogModal } from "./PrintCatalogModal";
+import { BOTTLE_PRESENTATIONS } from "@/lib/bottleSizes";
 
 interface CatalogProps {
   productos: Producto[];
@@ -71,6 +77,8 @@ export const Catalog: React.FC<CatalogProps> = ({
   const [visibleCount, setVisibleCount] = useState<number>(24);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState<boolean>(false);
   const [addedId, setAddedId] = useState<string | null>(null);
+  const [isBottleModalOpen, setIsBottleModalOpen] = useState<boolean>(false);
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState<boolean>(false);
 
   const categories = [
     { id: "Todos", label: "Todos", emoji: "🌟" },
@@ -221,8 +229,17 @@ export const Catalog: React.FC<CatalogProps> = ({
             </p>
           </div>
 
-          {/* DESCARGAR CATÁLOGOS PDF OFICIALES + GENERADOR */}
+          {/* DESCARGAR & IMPRIMIR CATÁLOGOS OFICIALES */}
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+            <button
+              onClick={() => setIsPrintModalOpen(true)}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold tracking-wider uppercase text-emerald-950 bg-gold-gradient hover:bg-gold-gradient-hover shadow-gold-glow transition-all duration-300 active:scale-95 shrink-0"
+              title="Abrir centro de impresión de catálogos y láminas de mostrador"
+            >
+              <Printer className="w-4 h-4 text-emerald-950" />
+              <span>Imprimir Catálogo</span>
+            </button>
+
             <a
               href="/catalogos/Catalogo_Dama_Vecar_Perfumeria.pdf"
               download="Catalogo_Dama_Vecar_Perfumeria.pdf"
@@ -248,7 +265,7 @@ export const Catalog: React.FC<CatalogProps> = ({
             <button
               onClick={handleDownloadPdf}
               disabled={isDownloadingPdf}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs font-semibold tracking-wider uppercase text-emerald-950 bg-gold-gradient hover:bg-gold-gradient-hover shadow-gold-glow transition-all duration-300 active:scale-95 disabled:opacity-70 shrink-0"
+              className="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-full text-xs font-semibold tracking-wider uppercase text-emerald-200 bg-emerald-950/80 hover:bg-emerald-900 border border-gold-400/30 transition-all duration-300 active:scale-95 disabled:opacity-70 shrink-0"
               title="Genera un PDF con las fragancias filtradas"
             >
               <FileDown className={`w-3.5 h-3.5 ${isDownloadingPdf ? "animate-bounce" : ""}`} />
@@ -257,55 +274,130 @@ export const Catalog: React.FC<CatalogProps> = ({
           </div>
         </div>
 
-        {/* LISTA OFICIAL DE PRECIOS & PRESENTACIONES (BANNER FLYER DE VECAR) */}
+        {/* LISTA OFICIAL DE PRECIOS & ENVASES DE LUJO (FOTOGRAFÍAS REALES DEL FLYER OFICIAL) */}
         <div className="mb-8 p-5 sm:p-6 rounded-3xl glass-emerald border border-gold-400/40 bg-gradient-to-r from-emerald-950/90 via-[#0a231a] to-emerald-950/90 shadow-xl">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-gold-400/20">
             <div>
               <span className="text-[10px] font-mono tracking-widest uppercase text-gold-400 font-bold block">
-                LISTA OFICIAL DE PRECIOS & ENVASES DE LUJO
+                FOTOS REALES DE ENTREGA • ENVASES DE LUJO
               </span>
               <h3 className="font-serif text-xl sm:text-2xl font-bold text-white mt-0.5">
                 Fragancias con <span className="gold-text">40% de Esencia Pura</span>
               </h3>
             </div>
-            <div className="flex flex-wrap items-center gap-2.5 text-xs text-emerald-200/90">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-900/60 border border-gold-400/30">
-                <Sparkles className="w-3.5 h-3.5 text-gold-400" />
-                <span>8 a 12 horas en piel</span>
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-900/60 border border-gold-400/30">
-                <Award className="w-3.5 h-3.5 text-gold-400" />
-                <span>Atomizador plateado premium</span>
-              </span>
+
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+              <button
+                type="button"
+                onClick={() => setIsBottleModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-gold-300 bg-emerald-900/60 hover:bg-emerald-800/80 border border-gold-400/30 transition-colors"
+              >
+                <Layers className="w-3.5 h-3.5 text-gold-400" />
+                <span>Guía & Comparador de Frascos</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsBottleModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-gold-300 bg-emerald-900/60 hover:bg-emerald-800/80 border border-gold-400/30 transition-colors"
+              >
+                <Eye className="w-3.5 h-3.5 text-gold-400" />
+                <span>Ver Flyer Oficial</span>
+              </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4">
-            <div className="p-3 rounded-2xl bg-black/40 border border-gold-400/30 text-center hover:border-gold-400 transition-colors">
-              <span className="text-xs font-bold text-emerald-200 uppercase block font-mono">10 ML (Pocket)</span>
-              <span className="font-serif text-2xl font-black text-gold-300 block my-0.5">Bs. 40</span>
-              <span className="text-[10px] text-gray-300">Frasco cilíndrico de bolsillo</span>
+          {/* 4 CARDS WITH REAL BOTTLE PHOTOS */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 pt-4">
+            
+            {/* 10 ML */}
+            <div 
+              onClick={() => setIsBottleModalOpen(true)}
+              className="p-3.5 rounded-2xl bg-black/40 border border-gold-400/30 text-center hover:border-gold-400 hover:scale-[1.02] transition-all cursor-pointer group flex flex-col justify-between"
+            >
+              <div className="h-28 w-full flex items-center justify-center p-1.5 mb-2 bg-gradient-to-b from-[#132E32]/70 via-[#0C1E20]/90 to-black/80 rounded-xl overflow-hidden border border-[#C9A050]/25 shadow-inner">
+                <img
+                  src="/frascos/frasco_10ml.png"
+                  alt="Frasco Vecar 10ml"
+                  className="max-h-full max-w-full object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.65)] group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-emerald-300 uppercase block font-mono">10 ML • Pocket</span>
+                <span className="font-serif text-2xl font-black text-gold-300 block my-0.5">Bs. 40</span>
+                <span className="text-[10px] text-gray-300 block">Frasco cilíndrico plateado</span>
+                <span className="text-[9.5px] font-mono text-emerald-400/80 block mt-0.5">~120 atomizaciones</span>
+              </div>
             </div>
 
-            <div className="p-3 rounded-2xl bg-black/40 border border-gold-400/30 text-center hover:border-gold-400 transition-colors">
-              <span className="text-xs font-bold text-emerald-200 uppercase block font-mono">30 ML (Personal)</span>
-              <span className="font-serif text-2xl font-black text-gold-300 block my-0.5">Bs. 70</span>
-              <span className="text-[10px] text-gray-300">Envase diario rectangular</span>
+            {/* 30 ML */}
+            <div 
+              onClick={() => setIsBottleModalOpen(true)}
+              className="p-3.5 rounded-2xl bg-black/40 border border-gold-400/30 text-center hover:border-gold-400 hover:scale-[1.02] transition-all cursor-pointer group flex flex-col justify-between"
+            >
+              <div className="h-28 w-full flex items-center justify-center p-1.5 mb-2 bg-gradient-to-b from-[#132E32]/70 via-[#0C1E20]/90 to-black/80 rounded-xl overflow-hidden border border-[#C9A050]/25 shadow-inner">
+                <img
+                  src="/frascos/frasco_30ml.png"
+                  alt="Frasco Vecar 30ml"
+                  className="max-h-full max-w-full object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.65)] group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-emerald-300 uppercase block font-mono">30 ML • Personal</span>
+                <span className="font-serif text-2xl font-black text-gold-300 block my-0.5">Bs. 70</span>
+                <span className="text-[10px] text-gray-300 block">Envase rectangular elegante</span>
+                <span className="text-[9.5px] font-mono text-emerald-400/80 block mt-0.5">~360 atomizaciones</span>
+              </div>
             </div>
 
-            <div className="p-3 rounded-2xl bg-gold-400/10 border-2 border-gold-400 text-center shadow-gold-glow">
-              <span className="text-xs font-bold text-gold-300 uppercase block font-mono">50 ML (Signature)</span>
-              <span className="font-serif text-2xl font-black text-white block my-0.5">Bs. 90</span>
-              <span className="text-[10px] text-gold-200 font-semibold">El Más Vendido</span>
+            {/* 50 ML (SIGNATURE / MAS VENDIDO) */}
+            <div 
+              onClick={() => setIsBottleModalOpen(true)}
+              className="p-3.5 rounded-2xl bg-gold-400/15 border-2 border-gold-400 text-center shadow-gold-glow hover:scale-[1.03] transition-all cursor-pointer group flex flex-col justify-between relative"
+            >
+              <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
+                <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-gold-400 text-emerald-950 shadow-md">
+                  Más Vendido
+                </span>
+              </div>
+              <div className="h-28 w-full flex items-center justify-center p-1.5 mb-2 bg-gradient-to-b from-[#16383E]/85 via-[#0C1E20]/95 to-black/90 rounded-xl overflow-hidden border border-gold-400/35 shadow-gold-glow/20">
+                <img
+                  src="/frascos/frasco_50ml.png"
+                  alt="Frasco Vecar 50ml"
+                  className="max-h-full max-w-full object-contain drop-shadow-[0_8px_18px_rgba(201,160,80,0.25)] group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-gold-300 uppercase block font-mono">50 ML • Signature</span>
+                <span className="font-serif text-2xl font-black text-white block my-0.5">Bs. 90</span>
+                <span className="text-[10px] text-gold-200 font-semibold block">Cuadrado Clásico (+1 Sello)</span>
+                <span className="text-[9.5px] font-mono text-gold-300/90 block mt-0.5">~600 atomizaciones</span>
+              </div>
             </div>
 
-            <div className="p-3 rounded-2xl bg-black/40 border border-gold-400/30 text-center hover:border-gold-400 transition-colors">
-              <span className="text-xs font-bold text-emerald-200 uppercase block font-mono">100 ML (Deluxe)</span>
-              <span className="font-serif text-2xl font-black text-gold-300 block my-0.5">Bs. 145</span>
-              <span className="text-[10px] text-gray-300">Frasco gran reserva señorial</span>
+            {/* 100 ML (DELUXE) */}
+            <div 
+              onClick={() => setIsBottleModalOpen(true)}
+              className="p-3.5 rounded-2xl bg-black/40 border border-gold-400/30 text-center hover:border-gold-400 hover:scale-[1.02] transition-all cursor-pointer group flex flex-col justify-between"
+            >
+              <div className="h-28 w-full flex items-center justify-center p-1.5 mb-2 bg-gradient-to-b from-[#132E32]/70 via-[#0C1E20]/90 to-black/80 rounded-xl overflow-hidden border border-[#C9A050]/25 shadow-inner">
+                <img
+                  src="/frascos/frasco_100ml.png"
+                  alt="Frasco Vecar 100ml"
+                  className="max-h-full max-w-full object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.65)] group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-emerald-300 uppercase block font-mono">100 ML • Deluxe</span>
+                <span className="font-serif text-2xl font-black text-gold-300 block my-0.5">Bs. 145</span>
+                <span className="text-[10px] text-gray-300 block">Gran reserva señorial</span>
+                <span className="text-[9.5px] font-mono text-emerald-400/80 block mt-0.5">~1,200 atomizaciones</span>
+              </div>
             </div>
+
           </div>
         </div>
+
 
         {/* ========================================================= */}
         {/* FILTROS & CATEGORIZACIÓN INTELIGENTE (AMIGABLE AL CLIENTE) */}
@@ -649,6 +741,20 @@ export const Catalog: React.FC<CatalogProps> = ({
         )}
 
       </div>
+
+      {/* MODAL DE COMPARADOR DE FRASCOS Y FLYER OFICIAL */}
+      <BottleComparisonModal
+        isOpen={isBottleModalOpen}
+        onClose={() => setIsBottleModalOpen(false)}
+      />
+
+      {/* MODAL DE CENTRO DE IMPRESIÓN Y CATÁLOGOS */}
+      <PrintCatalogModal
+        isOpen={isPrintModalOpen}
+        onClose={() => setIsPrintModalOpen(false)}
+        productos={productos}
+      />
     </section>
   );
 };
+

@@ -1,4 +1,4 @@
-import { Producto, Cliente, SelloHistorial, Venta } from "@/types/database";
+import { Producto, Cliente, SelloHistorial, Venta, CompraCliente } from "@/types/database";
 import { INITIAL_PRODUCTS, INITIAL_CLIENTS } from "./initialData";
 import { supabase, isSupabaseConfigured } from "./supabase";
 
@@ -191,6 +191,76 @@ export async function registerCliente(clienteData: {
   return newClient;
 }
 
+export async function registrarCompraCliente(
+  clienteId: string,
+  compraData: {
+    producto_nombre: string;
+    volumen_ml: 10 | 30 | 50 | 100;
+    precio_bob: number;
+    metodo_pago: 'EFECTIVO' | 'QR' | 'TARJETA';
+    notas?: string;
+    sumarSelloManual?: boolean;
+  }
+): Promise<{ cliente: Cliente; nuevaCompra: CompraCliente; sellosAnterior: number; sellosNuevo: number }> {
+  const list = await getClientes();
+  const index = list.findIndex(c => c.id === clienteId);
+  if (index === -1) throw new Error("Cliente no encontrado");
+
+  const actual = list[index];
+  const sellosAnterior = actual.sellos_acumulados;
+
+  // En Vecar, oficialmente la compra de 50ML suma +1 sello de fidelidad (o si el admin lo activa explícitamente)
+  const otorgoSello = compraData.sumarSelloManual ?? (compraData.volumen_ml === 50);
+  const deltaSellos = otorgoSello ? 1 : 0;
+  const sellosNuevo = Math.max(0, Math.min(10, sellosAnterior + deltaSellos));
+
+  const nuevaCompra: CompraCliente = {
+    id: `compra-${Date.now()}`,
+    fecha: new Date().toISOString(),
+    producto_nombre: compraData.producto_nombre,
+    volumen_ml: compraData.volumen_ml,
+    precio_bob: compraData.precio_bob,
+    metodo_pago: compraData.metodo_pago,
+    otorgo_sello: otorgoSello,
+    notas: compraData.notas,
+  };
+
+  const rawDesglose = actual.sellos_por_tamano || { ml10: 0, ml30: 0, ml50: 0, ml100: 0 };
+  const updatedDesglose = {
+    ml10: rawDesglose.ml10 || 0,
+    ml30: rawDesglose.ml30 || rawDesglose.ml20 || 0,
+    ml50: rawDesglose.ml50 || 0,
+    ml100: rawDesglose.ml100 || 0,
+  };
+
+  if (compraData.volumen_ml === 10) updatedDesglose.ml10 += 1;
+  else if (compraData.volumen_ml === 30) updatedDesglose.ml30 += 1;
+  else if (compraData.volumen_ml === 50) updatedDesglose.ml50 += 1;
+  else if (compraData.volumen_ml === 100) updatedDesglose.ml100 += 1;
+
+  const currentHistorial = actual.historial_compras || [];
+  const updatedHistorial = [nuevaCompra, ...currentHistorial];
+
+  const updatedClient: Cliente = {
+    ...actual,
+    sellos_acumulados: sellosNuevo,
+    total_compras_bob: (actual.total_compras_bob || 0) + compraData.precio_bob,
+    sellos_por_tamano: updatedDesglose,
+    historial_compras: updatedHistorial,
+    actualizado_en: new Date().toISOString()
+  };
+
+  list[index] = updatedClient;
+  setLocal(CLIENTS_STORAGE_KEY, list);
+
+  return {
+    cliente: updatedClient,
+    nuevaCompra,
+    sellosAnterior,
+    sellosNuevo
+  };
+}
+
 export async function updateClienteSellos(
   clienteId: string, 
   delta: number, 
@@ -205,10 +275,17 @@ export async function updateClienteSellos(
   const anterior = actual.sellos_acumulados;
   let nuevo = Math.max(0, Math.min(10, anterior + delta));
 
-  const currentDesglose = actual.sellos_por_tamano || { ml20: 0, ml50: anterior, ml100: 0 };
-  const updatedDesglose = { ...currentDesglose };
+  const rawDesglose = actual.sellos_por_tamano || { ml10: 0, ml30: 0, ml50: 0, ml100: 0 };
+  const updatedDesglose = {
+    ml10: rawDesglose.ml10 || 0,
+    ml30: rawDesglose.ml30 || rawDesglose.ml20 || 0,
+    ml50: rawDesglose.ml50 || 0,
+    ml100: rawDesglose.ml100 || 0,
+  };
+
   if (delta > 0) {
-    if (presentacion_ml === 20) updatedDesglose.ml20 += delta;
+    if (presentacion_ml === 10) updatedDesglose.ml10 += delta;
+    else if (presentacion_ml === 30) updatedDesglose.ml30 += delta;
     else if (presentacion_ml === 100) updatedDesglose.ml100 += delta;
     else updatedDesglose.ml50 += delta;
   }
@@ -223,7 +300,6 @@ export async function updateClienteSellos(
   if (isSupabaseConfigured && supabase) {
     try {
       await supabase.from("clientes").update({ sellos_acumulados: nuevo }).eq("id", clienteId);
-      // Registrar en historial
       await supabase.from("sellos_historial").insert([{
         cliente_id: clienteId,
         tipo_movimiento: delta > 0 ? "SUMA" : "AJUSTE",
@@ -252,7 +328,7 @@ export async function canjearPremioFidelidad(clienteId: string, presentacion_ml:
   const updatedClient: Cliente = {
     ...actual,
     sellos_acumulados: 0, // Reinicia la tarjeta para el próximo ciclo
-    sellos_por_tamano: { ml20: 0, ml50: 0, ml100: 0 },
+    sellos_por_tamano: { ml10: 0, ml30: 0, ml50: 0, ml100: 0 },
     actualizado_en: new Date().toISOString()
   };
 

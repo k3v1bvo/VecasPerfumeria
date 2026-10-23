@@ -11,6 +11,7 @@ import {
   registerCliente,
   updateClienteSellos,
   canjearPremioFidelidad,
+  registrarCompraCliente,
 } from "@/lib/dataService";
 import QRCode from "qrcode";
 import {
@@ -34,10 +35,18 @@ import {
   ArrowLeft,
   DollarSign,
   Smartphone,
+  ShoppingCart,
+  Calendar,
+  Phone,
+  Mail,
+  User,
+  History,
 } from "lucide-react";
 import Link from "next/link";
 import confetti from "canvas-confetti";
 import { Interactive3DCard } from "@/components/Interactive3DCard";
+import { PhysicalCard3D } from "@/components/PhysicalCard3D";
+import { playStampSound } from "@/lib/stampAudio";
 import { calculatePremioSugerido } from "@/lib/loyaltyRules";
 import {
   getBusinessPaymentConfig,
@@ -60,6 +69,14 @@ export default function AdminPage() {
   const [clientSearch, setClientSearch] = useState("");
   const [selectedClient, setSelectedClient] = useState<Cliente | null>(null);
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
+
+  // Registro de Compra en Mostrador (Apartado del Dueño)
+  const [purchasePerfume, setPurchasePerfume] = useState("");
+  const [purchaseSize, setPurchaseSize] = useState<10 | 30 | 50 | 100>(50);
+  const [purchasePaymentMethod, setPurchasePaymentMethod] = useState<"EFECTIVO" | "QR">("EFECTIVO");
+  const [purchaseNotes, setPurchaseNotes] = useState("");
+  const [purchaseAwardStamp, setPurchaseAwardStamp] = useState(true);
+  const [isRegisteringPurchase, setIsRegisteringPurchase] = useState(false);
 
   // New Client Modal
   const [showNewClientModal, setShowNewClientModal] = useState(false);
@@ -163,6 +180,58 @@ export default function AdminPage() {
 
   // Payment Config State
   const [paymentConfig, setPaymentConfig] = useState<BusinessPaymentConfig>(getBusinessPaymentConfig());
+
+  // REGISTRO DE COMPRA EN MOSTRADOR (APARTADO OFICIAL DEL DUEÑO)
+  const handleRegisterPurchase = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedClient) return;
+    if (!purchasePerfume.trim()) {
+      setFeedbackMsg("⚠️ Por favor ingresa o selecciona el nombre del perfume vendido.");
+      setTimeout(() => setFeedbackMsg(null), 3000);
+      return;
+    }
+
+    setIsRegisteringPurchase(true);
+    try {
+      const price = purchaseSize === 10 ? 40 : purchaseSize === 30 ? 70 : purchaseSize === 50 ? 90 : 145;
+      const res = await registrarCompraCliente(selectedClient.id, {
+        producto_nombre: purchasePerfume.trim(),
+        volumen_ml: purchaseSize,
+        precio_bob: price,
+        metodo_pago: purchasePaymentMethod,
+        notas: purchaseNotes.trim() || undefined,
+        sumarSelloManual: purchaseAwardStamp,
+      });
+
+      setSelectedClient(res.cliente);
+      loadData();
+
+      if (res.sellosNuevo > res.sellosAnterior) {
+        playStampSound();
+        setFeedbackMsg(`🛒 ¡Compra de ${purchasePerfume.trim()} (${purchaseSize}ML - Bs. ${price}) registrada! Sello #${res.sellosNuevo} estampado.`);
+        if (res.sellosNuevo === 10) {
+          confetti({
+            particleCount: 130,
+            spread: 90,
+            origin: { y: 0.5 },
+            colors: ["#C9A050", "#DFB968", "#4E265B", "#FFFFFF"],
+          });
+        }
+      } else {
+        setFeedbackMsg(`🛒 ¡Compra de ${purchasePerfume.trim()} (${purchaseSize}ML - Bs. ${price}) guardada en la ficha de ${selectedClient.nombre_completo}!`);
+      }
+
+      setPurchasePerfume("");
+      setPurchaseNotes("");
+      setTimeout(() => setFeedbackMsg(null), 4000);
+    } catch (err) {
+      console.error(err);
+      setFeedbackMsg("Error al registrar la compra.");
+      setTimeout(() => setFeedbackMsg(null), 3000);
+    } finally {
+      setIsRegisteringPurchase(false);
+    }
+  };
 
   // STAMPS ACTIONS (CON PRESENTACIONES OFICIALES: 10ML, 30ML, 50ML, 100ML)
   const handleAddStamp = async (clienteId: string, delta: number, presentacion_ml: number = 50) => {
@@ -597,127 +666,397 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Selected Client Card Details (TARJETA 3D INTERACTIVA + CONTROL DE SELLOS) */}
-              <div className="rounded-3xl glass-emerald border border-gold-400/30 p-5 sm:p-6 self-start space-y-5">
+              {/* Selected Client Card Details (FICHA DEL CLIENTE + REGISTRO DE COMPRA + HISTORIAL) */}
+              <div className="rounded-3xl glass-emerald border border-gold-400/30 p-5 sm:p-6 self-start space-y-6">
                 {selectedClient ? (
                   <>
-                    <div className="flex items-center justify-between border-b border-gold-400/20 pb-3">
+                    {/* ENCABEZADO DE LA FICHA */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gold-400/20 pb-4">
                       <div>
-                        <span className="text-[10px] font-mono tracking-widest text-gold-400 uppercase block">
-                          TARJETA DIGITAL VIP 3D
-                        </span>
-                        <h3 className="font-serif text-xl font-bold text-white">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono tracking-widest text-gold-400 uppercase">
+                            FICHA DE CLIENTE VIP
+                          </span>
+                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-950 border border-emerald-500/40 text-emerald-300 font-mono">
+                            ID: {selectedClient.id}
+                          </span>
+                        </div>
+                        <h3 className="font-serif text-xl sm:text-2xl font-bold text-white mt-0.5">
                           {selectedClient.nombre_completo}
                         </h3>
-                        <p className="text-xs text-emerald-200/70 font-mono">
-                          WhatsApp: {selectedClient.telefono}
-                        </p>
-                      </div>
-                      <div className="px-3 py-1.5 rounded-full bg-gold-400/20 border border-gold-400 text-gold-300 text-xs font-mono font-bold">
-                        {selectedClient.sellos_acumulados} / 10
-                      </div>
-                    </div>
-
-                    {/* 3D INTERACTIVE CARD IN ADMIN (REAL-TIME MOTION & GLARE) */}
-                    <div className="py-1">
-                      <Interactive3DCard cliente={selectedClient} interactive={true} />
-                    </div>
-
-                    {/* QUICK STAMP ASSIGNMENT BY BOTTLE SIZE */}
-                    <div className="space-y-2 pt-2">
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-gold-300 block">
-                        Sumar Sello según Envase Vendido:
-                      </label>
-                      
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={() => handleAddStamp(selectedClient.id, 1, 10)}
-                          className="p-2 rounded-xl text-xs font-bold text-emerald-950 bg-emerald-400 hover:bg-emerald-300 shadow-sm transition-all text-left flex flex-col"
-                        >
-                          <span>+1 Sello 10 ML</span>
-                          <span className="text-[9px] opacity-80 font-mono">Bs. 40 (Pocket)</span>
-                        </button>
-
-                        <button
-                          onClick={() => handleAddStamp(selectedClient.id, 1, 30)}
-                          className="p-2 rounded-xl text-xs font-bold text-emerald-950 bg-teal-400 hover:bg-teal-300 shadow-sm transition-all text-left flex flex-col"
-                        >
-                          <span>+1 Sello 30 ML</span>
-                          <span className="text-[9px] opacity-80 font-mono">Bs. 70 (Personal)</span>
-                        </button>
-
-                        <button
-                          onClick={() => handleAddStamp(selectedClient.id, 1, 50)}
-                          className="p-2 rounded-xl text-xs font-bold text-emerald-950 bg-gold-400 hover:bg-gold-300 shadow-sm transition-all text-left flex flex-col ring-1 ring-gold-300"
-                        >
-                          <span>+1 Sello 50 ML</span>
-                          <span className="text-[9px] opacity-80 font-mono">Bs. 90 (Signature)</span>
-                        </button>
-
-                        <button
-                          onClick={() => handleAddStamp(selectedClient.id, 1, 100)}
-                          className="p-2 rounded-xl text-xs font-bold text-emerald-950 bg-amber-400 hover:bg-amber-300 shadow-sm transition-all text-left flex flex-col"
-                        >
-                          <span>+1 Sello 100 ML</span>
-                          <span className="text-[9px] opacity-80 font-mono">Bs. 145 (Deluxe)</span>
-                        </button>
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-emerald-200/80 font-mono mt-1">
+                          <a
+                            href={`https://wa.me/591${selectedClient.telefono}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-emerald-300 hover:text-gold-300 underline"
+                          >
+                            <Phone className="w-3 h-3 text-emerald-400" />
+                            <span>{selectedClient.telefono}</span>
+                          </a>
+                          <span>•</span>
+                          <span className="flex items-center gap-1 text-gray-300">
+                            <Mail className="w-3 h-3 text-gold-400" />
+                            <span>{selectedClient.email}</span>
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="flex justify-end pt-1">
-                        <button
-                          onClick={() => handleAddStamp(selectedClient.id, -1)}
-                          disabled={selectedClient.sellos_acumulados <= 0}
-                          className="text-[11px] font-mono text-gray-400 hover:text-red-400 transition-colors disabled:opacity-30"
-                        >
-                          -1 Sello (Ajuste de error)
-                        </button>
+                      <div className="flex items-center gap-2 self-start sm:self-auto">
+                        <div className="px-3.5 py-1.5 rounded-2xl bg-gold-400/20 border border-gold-400 text-center">
+                          <span className="text-[10px] text-gold-300/80 font-mono block uppercase">Sellos</span>
+                          <span className="text-sm font-mono font-bold text-gold-300">
+                            {selectedClient.sellos_acumulados} / 10
+                          </span>
+                        </div>
+                        <div className="px-3.5 py-1.5 rounded-2xl bg-black/40 border border-gold-400/20 text-center">
+                          <span className="text-[10px] text-gray-400 font-mono block uppercase">Total Compras</span>
+                          <span className="text-sm font-mono font-bold text-white">
+                            Bs. {selectedClient.total_compras_bob || 0}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* DYNAMIC PRIZE CALCULATION & REDEMPTION (BASED ON MOST PURCHASED SIZE) */}
-                    {(() => {
-                      const premio = calculatePremioSugerido(selectedClient);
-                      return (
-                        <div className="space-y-3 pt-2 border-t border-gold-400/20">
-                          {selectedClient.sellos_acumulados >= 10 ? (
-                            <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/20 via-gold-400/25 to-amber-600/20 border-2 border-gold-400 text-center space-y-2.5 shadow-gold-glow animate-pulse">
-                              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold-400 text-emerald-950 text-xs font-black uppercase tracking-wider">
-                                <Award className="w-4 h-4 text-emerald-950" />
-                                <span>¡PREMIO GANADO: 10 SELLOS!</span>
-                              </div>
-                              <h4 className="font-serif text-lg font-bold text-white">
-                                Perfume de {premio.tamanoMl} ML GRATIS
-                              </h4>
-                              <p className="text-[11px] text-gold-200 leading-relaxed">
-                                {premio.explicacion}
-                              </p>
+                    {/* TARJETA OFICIAL FÍSICA 3D (GIRO FRENTE Y REVERSO EN VIVO) */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-gold-300 font-mono flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-gold-400" />
+                          <span>Tarjeta Oficial Física (Vista del Cliente)</span>
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-mono">
+                          {selectedClient.sellos_acumulados} de 10 sellos activos
+                        </span>
+                      </div>
+                      <div className="w-full max-w-sm sm:max-w-md mx-auto py-1">
+                        <PhysicalCard3D
+                          key={`admin-card-${selectedClient.id}-${selectedClient.sellos_acumulados}`}
+                          initialStamps={selectedClient.sellos_acumulados}
+                          interactiveStamps={false}
+                        />
+                      </div>
+                    </div>
+
+                    {/* ========================================================= */}
+                    {/* MÓDULO OFICIAL: REGISTRAR COMPRA (MOSTRADOR VECAR)          */}
+                    {/* ========================================================= */}
+                    <div className="p-4 sm:p-5 rounded-2xl bg-black/50 border border-gold-400/35 space-y-4 shadow-xl">
+                      <div className="flex items-center justify-between border-b border-gold-400/20 pb-2">
+                        <div className="flex items-center gap-2">
+                          <ShoppingCart className="w-4 h-4 text-gold-400" />
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-gold-300 font-mono">
+                            Registrar Compra y Asignar Frasco
+                          </h4>
+                        </div>
+                        <span className="text-[10px] text-emerald-300 font-semibold">
+                          50ML = +1 Sello Oficial
+                        </span>
+                      </div>
+
+                      <form onSubmit={handleRegisterPurchase} className="space-y-3.5">
+                        {/* 1. SELECCIÓN DE PERFUME */}
+                        <div>
+                          <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                            Perfume Vendido:
+                          </label>
+                          <input
+                            list="perfume-catalog-options"
+                            type="text"
+                            value={purchasePerfume}
+                            onChange={(e) => setPurchasePerfume(e.target.value)}
+                            placeholder="Buscar o escribir fragancia (ej. Sauvage, Cloud, Baccarat 540...)"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-emerald-950/80 border border-gold-400/40 text-white placeholder-emerald-200/40 text-xs focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400"
+                            required
+                          />
+                          <datalist id="perfume-catalog-options">
+                            {productos.map((p) => (
+                              <option key={p.id} value={p.nombre}>
+                                {p.categoria} • {p.marca_casa}
+                              </option>
+                            ))}
+                          </datalist>
+                        </div>
+
+                        {/* 2. SELECCIÓN DE FRASCO (10, 30, 50, 100 ML) */}
+                        <div>
+                          <label className="text-[11px] font-semibold text-gray-300 block mb-1.5">
+                            Tamaño de Frasco y Precio:
+                          </label>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            {/* 10 ML */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPurchaseSize(10);
+                                setPurchaseAwardStamp(false);
+                              }}
+                              className={`p-2.5 rounded-xl border text-center transition-all ${
+                                purchaseSize === 10
+                                  ? "bg-emerald-500/25 border-emerald-400 ring-2 ring-emerald-400/50"
+                                  : "bg-emerald-950/40 border-gold-400/20 hover:border-gold-400/40"
+                              }`}
+                            >
+                              <span className="text-[10px] font-bold text-emerald-300 block uppercase font-mono">10 ML</span>
+                              <span className="font-serif text-base font-black text-gold-300 block my-0.5">Bs. 40</span>
+                              <span className="text-[9px] text-gray-400 block">Pocket</span>
+                            </button>
+
+                            {/* 30 ML */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPurchaseSize(30);
+                                setPurchaseAwardStamp(false);
+                              }}
+                              className={`p-2.5 rounded-xl border text-center transition-all ${
+                                purchaseSize === 30
+                                  ? "bg-teal-500/25 border-teal-400 ring-2 ring-teal-400/50"
+                                  : "bg-emerald-950/40 border-gold-400/20 hover:border-gold-400/40"
+                              }`}
+                            >
+                              <span className="text-[10px] font-bold text-teal-300 block uppercase font-mono">30 ML</span>
+                              <span className="font-serif text-base font-black text-gold-300 block my-0.5">Bs. 70</span>
+                              <span className="text-[9px] text-gray-400 block">Personal</span>
+                            </button>
+
+                            {/* 50 ML (SIGNATURE) */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPurchaseSize(50);
+                                setPurchaseAwardStamp(true);
+                              }}
+                              className={`p-2.5 rounded-xl border-2 text-center transition-all relative ${
+                                purchaseSize === 50
+                                  ? "bg-gold-500/30 border-gold-400 ring-2 ring-gold-400 shadow-gold-glow"
+                                  : "bg-gold-400/10 border-gold-400/40 hover:border-gold-400"
+                              }`}
+                            >
+                              <span className="absolute -top-2 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded-full text-[7.5px] font-black uppercase tracking-wider bg-gold-400 text-emerald-950">
+                                +1 Sello
+                              </span>
+                              <span className="text-[10px] font-bold text-gold-300 block uppercase font-mono mt-0.5">50 ML</span>
+                              <span className="font-serif text-base font-black text-white block my-0.5">Bs. 90</span>
+                              <span className="text-[9px] text-gold-200 block font-semibold">Signature</span>
+                            </button>
+
+                            {/* 100 ML */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPurchaseSize(100);
+                                setPurchaseAwardStamp(false);
+                              }}
+                              className={`p-2.5 rounded-xl border text-center transition-all ${
+                                purchaseSize === 100
+                                  ? "bg-amber-500/25 border-amber-400 ring-2 ring-amber-400/50"
+                                  : "bg-emerald-950/40 border-gold-400/20 hover:border-gold-400/40"
+                              }`}
+                            >
+                              <span className="text-[10px] font-bold text-amber-300 block uppercase font-mono">100 ML</span>
+                              <span className="font-serif text-base font-black text-gold-300 block my-0.5">Bs. 145</span>
+                              <span className="text-[9px] text-gray-400 block">Deluxe</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* 3. MÉTODO DE PAGO Y SELLO TOGGLE */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                          <div>
+                            <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                              Método de Pago:
+                            </label>
+                            <div className="grid grid-cols-2 gap-2">
                               <button
-                                onClick={() => handleRedeemPrize(selectedClient.id, premio.tamanoMl)}
-                                className="w-full py-3 rounded-full text-xs font-bold uppercase tracking-wider text-emerald-950 bg-gold-gradient hover:bg-gold-gradient-hover shadow-lg transition-all active:scale-95"
+                                type="button"
+                                onClick={() => setPurchasePaymentMethod("EFECTIVO")}
+                                className={`py-1.5 px-3 rounded-lg text-xs font-semibold border transition-all ${
+                                  purchasePaymentMethod === "EFECTIVO"
+                                    ? "bg-emerald-400 text-emerald-950 border-emerald-300 font-bold"
+                                    : "bg-emerald-950/50 text-gray-300 border-gold-400/20 hover:border-gold-400/40"
+                                }`}
                               >
-                                🎁 Entregar Perfume {premio.tamanoMl} ML y Reiniciar Tarjeta a 0
+                                Efectivo
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setPurchasePaymentMethod("QR")}
+                                className={`py-1.5 px-3 rounded-lg text-xs font-semibold border transition-all ${
+                                  purchasePaymentMethod === "QR"
+                                    ? "bg-gold-400 text-emerald-950 border-gold-300 font-bold"
+                                    : "bg-emerald-950/50 text-gray-300 border-gold-400/20 hover:border-gold-400/40"
+                                }`}
+                              >
+                                QR / Simple
                               </button>
                             </div>
-                          ) : (
-                            <div className="p-3.5 rounded-xl bg-emerald-950/80 border border-gold-400/20 text-xs space-y-1.5">
-                              <div className="flex items-center justify-between text-gold-300">
-                                <span className="font-semibold">Premio proyectado:</span>
-                                <span className="font-bold text-white">Perfume {premio.tamanoMl} ML GRATIS</span>
-                              </div>
-                              <p className="text-[11px] text-emerald-200/80">
-                                Desglose actual: {premio.desglose.ml50} de 50ml • {premio.desglose.ml100} de 100ml • {premio.desglose.ml30} de 30ml • {premio.desglose.ml10} de 10ml.
-                              </p>
-                            </div>
-                          )}
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-semibold text-gray-300 block mb-1">
+                              Sello de Fidelidad:
+                            </label>
+                            <label className="flex items-center gap-2 py-1.5 px-3 rounded-lg bg-emerald-950/60 border border-gold-400/30 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={purchaseAwardStamp}
+                                onChange={(e) => setPurchaseAwardStamp(e.target.checked)}
+                                className="w-4 h-4 accent-[#C9A050] rounded"
+                              />
+                              <span className="text-xs font-medium text-white">
+                                Estampar +1 Sello ({purchaseSize === 50 ? "Regla Oficial 50ML" : "Manual / Promoción"})
+                              </span>
+                            </label>
+                          </div>
                         </div>
-                      );
-                    })()}
+
+                        {/* 4. BOTÓN PRINCIPAL DE REGISTRO */}
+                        <button
+                          type="submit"
+                          disabled={isRegisteringPurchase}
+                          className="w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-emerald-950 bg-gold-gradient hover:bg-gold-gradient-hover shadow-gold-glow flex items-center justify-center gap-2 active:scale-98 transition-all disabled:opacity-50 cursor-pointer"
+                        >
+                          <ShoppingCart className="w-4 h-4" />
+                          <span>
+                            {isRegisteringPurchase
+                              ? "Registrando Compra..."
+                              : `Registrar Compra: ${purchaseSize} ML (Bs. ${purchaseSize === 10 ? 40 : purchaseSize === 30 ? 70 : purchaseSize === 50 ? 90 : 145})`}
+                          </span>
+                        </button>
+                      </form>
+                    </div>
+
+                    {/* ========================================================= */}
+                    {/* HISTORIAL COMPLETO DE COMPRAS DEL CLIENTE                 */}
+                    {/* ========================================================= */}
+                    <div className="space-y-3 pt-1">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <History className="w-4 h-4 text-gold-400" />
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-gold-300 font-mono">
+                            Historial de Compras ({selectedClient.historial_compras?.length || 0})
+                          </h4>
+                        </div>
+                        <span className="text-[10px] text-gray-400 font-mono">
+                          Registro en vivo de mostrador
+                        </span>
+                      </div>
+
+                      {selectedClient.historial_compras && selectedClient.historial_compras.length > 0 ? (
+                        <div className="divide-y divide-gold-400/15 max-h-56 overflow-y-auto rounded-2xl bg-black/40 border border-gold-400/20 p-2">
+                          {selectedClient.historial_compras.map((compra) => (
+                            <div key={compra.id} className="p-2.5 flex items-center justify-between gap-3 text-xs">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold text-white">
+                                    {compra.producto_nombre}
+                                  </span>
+                                  <span className="px-2 py-0.5 rounded-md text-[9px] font-bold font-mono uppercase bg-emerald-950 text-gold-300 border border-gold-400/30">
+                                    {compra.volumen_ml} ML
+                                  </span>
+                                  {compra.otorgo_sello && (
+                                    <span className="px-1.5 py-0.5 rounded text-[8.5px] font-bold plum-stamp-surface text-purple-100 border border-purple-300/40">
+                                      +1 Sello 50ML
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-[10px] text-gray-400 block mt-0.5">
+                                  {new Date(compra.fecha).toLocaleDateString("es-BO", {
+                                    day: "2-digit",
+                                    month: "short",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })} • Pago: {compra.metodo_pago}
+                                </span>
+                              </div>
+                              <span className="font-mono font-bold text-gold-300 text-sm shrink-0">
+                                Bs. {compra.precio_bob}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-4 rounded-xl bg-black/30 border border-gold-400/10 text-center text-xs text-gray-400">
+                          Ficha sin compras previas registradas. Usa el módulo superior para registrar su primer frasco.
+                        </div>
+                      )}
+                    </div>
+
+                    {/* ========================================================= */}
+                    {/* CONTROLES RÁPIDOS DE SELLOS & CANJE DE PREMIO             */}
+                    {/* ========================================================= */}
+                    <div className="space-y-3 pt-2 border-t border-gold-400/20">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-gold-300 font-mono">
+                          Ajustes de Sello en Tarjeta:
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleAddStamp(selectedClient.id, 1)}
+                            className="px-2.5 py-1 rounded-lg text-xs font-bold text-emerald-950 bg-gold-400 hover:bg-gold-300 shadow-sm active:scale-95"
+                          >
+                            +1 Sello Rápido
+                          </button>
+                          <button
+                            onClick={() => handleAddStamp(selectedClient.id, -1)}
+                            disabled={selectedClient.sellos_acumulados <= 0}
+                            className="px-2.5 py-1 rounded-lg text-xs font-bold text-red-200 bg-red-950/60 border border-red-500/40 hover:bg-red-900/60 disabled:opacity-30"
+                          >
+                            -1 Sello
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* CANJE DE PREMIO SI TIENE 10 SELLOS */}
+                      {(() => {
+                        const premio = calculatePremioSugerido(selectedClient);
+                        return selectedClient.sellos_acumulados >= 10 ? (
+                          <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/20 via-gold-400/25 to-amber-600/20 border-2 border-gold-400 text-center space-y-2.5 shadow-gold-glow animate-pulse">
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold-400 text-emerald-950 text-xs font-black uppercase tracking-wider">
+                              <Award className="w-4 h-4 text-emerald-950" />
+                              <span>¡PREMIO GANADO: 10 SELLOS COMPLETADOS!</span>
+                            </div>
+                            <h4 className="font-serif text-lg font-bold text-white">
+                              Perfume de {premio.tamanoMl} ML GRATIS
+                            </h4>
+                            <p className="text-[11px] text-gold-200 leading-relaxed">
+                              {premio.explicacion}
+                            </p>
+                            <button
+                              onClick={() => handleRedeemPrize(selectedClient.id, premio.tamanoMl)}
+                              className="w-full py-3 rounded-full text-xs font-bold uppercase tracking-wider text-emerald-950 bg-gold-gradient hover:bg-gold-gradient-hover shadow-lg transition-all active:scale-95"
+                            >
+                              🎁 Entregar Perfume de Regalo y Reiniciar Tarjeta a 0
+                            </button>
+                          </div>
+                        ) : null;
+                      })()}
+
+                      {/* BOTÓN WHATSAPP PARA EL CLIENTE */}
+                      <a
+                        href={`https://wa.me/591${selectedClient.telefono}?text=${encodeURIComponent(
+                          `¡Hola ${selectedClient.nombre_completo}! ✨ Gracias por tu preferencia en Vecar Perfumería.\n\n` +
+                          `Tu compra ha sido registrada con éxito. Actualmente tienes *${selectedClient.sellos_acumulados} de 10 sellos* en tu Tarjeta de Fidelidad.\n\n` +
+                          `Puedes consultar tu tarjeta digital y tus compras en cualquier momento con tu número de celular o correo en nuestra web:\n` +
+                          `${typeof window !== "undefined" ? window.location.origin : "https://vecarperfumeria.bo"}/#fidelidad`
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full py-2.5 rounded-xl border border-emerald-400/50 bg-emerald-950/70 hover:bg-emerald-900/80 text-emerald-300 text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow"
+                      >
+                        <Phone className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Enviar Notificación y Link de Tarjeta al Cliente por WhatsApp</span>
+                      </a>
+                    </div>
                   </>
                 ) : (
-                  <div className="text-center py-12 text-xs text-gray-400">
-                    <Award className="w-10 h-10 text-gold-400/40 mx-auto mb-2" />
-                    <p className="font-medium text-white">Ningún cliente seleccionado</p>
-                    <p className="mt-1">Haz clic en un cliente de la lista para ver su tarjeta y administrar sus sellos.</p>
+                  <div className="text-center py-16 text-xs text-gray-400 space-y-2">
+                    <Award className="w-12 h-12 text-gold-400/40 mx-auto mb-2" />
+                    <p className="font-serif text-lg font-bold text-white">Ningún cliente seleccionado</p>
+                    <p className="text-xs text-emerald-200/60 max-w-sm mx-auto">
+                      Busca un cliente por su número de celular o correo en el directorio de la izquierda, o presiona <strong>"+ Registrar Nuevo Cliente"</strong> para abrir su ficha.
+                    </p>
                   </div>
                 )}
               </div>

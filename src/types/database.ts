@@ -19,6 +19,18 @@ export interface Producto {
   creado_en?: string;
 }
 
+export interface CompraCliente {
+  id: string;
+  fecha: string;
+  producto_id?: string;
+  producto_nombre: string;
+  volumen_ml: 10 | 30 | 50 | 100;
+  precio_bob: number;
+  metodo_pago: 'EFECTIVO' | 'QR' | 'TARJETA';
+  otorgo_sello: boolean;
+  notas?: string;
+}
+
 export interface Cliente {
   id: string;
   nombre_completo: string;
@@ -29,10 +41,13 @@ export interface Cliente {
   total_compras_bob: number;
   activo?: boolean;
   sellos_por_tamano?: {
-    ml20: number;
+    ml10: number;
+    ml30: number;
     ml50: number;
     ml100: number;
+    ml20?: number;
   };
+  historial_compras?: CompraCliente[];
   creado_en?: string;
   actualizado_en?: string;
 }

@@ -34,12 +34,25 @@ const config: Config = {
         stamp: {
           wine: "#5f1828",
           wineBorder: "#d4af37",
-        }
+        },
+        vecar: {
+          deep: "#0E2326",
+          darker: "#091719",
+          emerald: "#163034",
+          slate: "#1E3B3F",
+          gold: "#C9A050",
+          goldLight: "#DFB968",
+          goldPale: "#F1DCA7",
+          plum: "#4E265B",
+          plumLight: "#69357A",
+          tealWave: "#245861",
+        },
       },
       fontFamily: {
         serif: ["var(--font-cormorant)", "Georgia", "serif"],
         sans: ["var(--font-montserrat)", "system-ui", "sans-serif"],
         display: ["var(--font-playfair)", "serif"],
+        script: ["'Great Vibes'", "cursive"],
       },
       boxShadow: {
         'gold-glow': '0 0 25px -5px rgba(212, 175, 55, 0.35)',

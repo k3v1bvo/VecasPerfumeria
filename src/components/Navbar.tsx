@@ -1,18 +1,21 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sparkles, ShoppingBag, Search, Phone, Menu, X, Award } from "lucide-react";
+import { Sparkles, ShoppingBag, Search, Phone, Menu, X, Award, MapPin } from "lucide-react";
+import { VecarEmblem } from "./VecarLogo";
 
 interface NavbarProps {
   cartCount: number;
   onOpenCart: () => void;
   onOpenClubModal: () => void;
+  onOpenMapsModal?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   cartCount,
   onOpenCart,
   onOpenClubModal,
+  onOpenMapsModal,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -20,39 +23,26 @@ export const Navbar: React.FC<NavbarProps> = ({
     <header className="sticky top-0 z-40 w-full glass-emerald border-b border-gold-500/20 backdrop-blur-md transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         
-        {/* LOGO (matching the provided design mockup) */}
+        {/* LOGO OFICIAL VECAR PERFUMERÍA (CON EMBLEMA VECTORIAL CALCADO DE LA TARJETA) */}
         <a href="#inicio" className="flex items-center gap-3 group">
           <div className="relative w-11 h-11 rounded-full border border-gold-400/50 flex items-center justify-center bg-gradient-to-br from-gold-300/20 via-emerald-950/80 to-emerald-900/60 shadow-gold-glow transition-transform duration-300 group-hover:scale-105">
-            {/* Perfume Bottle SVG Badge */}
-            <svg 
-              className="w-6 h-6 text-gold-400 transition-colors" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="1.6" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            >
-              <path d="M9 3h6v3H9z" />
-              <path d="M10 6v2h4V6" />
-              <rect x="5" y="8" width="14" height="13" rx="3" />
-              <circle cx="12" cy="14" r="2.5" />
-            </svg>
+            <VecarEmblem className="w-8 h-7 text-gold-300 transition-colors" />
             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-gold-400 animate-ping opacity-75" />
           </div>
 
-          <div className="flex flex-col">
-            <span className="font-serif text-2xl font-bold tracking-[0.2em] text-white group-hover:text-gold-200 transition-colors">
-              VECAR
+          <div className="flex flex-col leading-none">
+            <span className="font-serif italic font-bold text-2xl sm:text-3xl text-white group-hover:text-gold-200 transition-colors tracking-wide">
+              Vecar
             </span>
-            <span className="text-[10px] tracking-[0.35em] text-gold-400 font-medium uppercase -mt-1">
+            <div className="w-full h-[1px] bg-gold-400/50 my-0.5" />
+            <span className="font-sans text-[9px] tracking-[0.28em] text-gold-400 font-bold uppercase">
               PERFUMERÍA
             </span>
           </div>
         </a>
 
         {/* DESKTOP NAVIGATION */}
-        <nav className="hidden md:flex items-center space-x-8 text-sm font-medium">
+        <nav className="hidden md:flex items-center space-x-7 text-sm font-medium">
           <a
             href="#inicio"
             className="text-gray-200 hover:text-gold-300 transition-colors tracking-wide py-1 border-b border-transparent hover:border-gold-400/40"
@@ -78,13 +68,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               10 Sellos
             </span>
           </a>
-          <a
-            href="#contacto"
-            className="text-gray-200 hover:text-gold-300 transition-colors tracking-wide py-1 border-b border-transparent hover:border-gold-400/40"
-          >
-            Contacto
-          </a>
+          {onOpenMapsModal && (
+            <button
+              onClick={onOpenMapsModal}
+              className="text-gray-200 hover:text-gold-300 transition-colors tracking-wide py-1 flex items-center gap-1.5"
+            >
+              <MapPin className="w-3.5 h-3.5 text-gold-400" />
+              <span>Ubicación</span>
+            </button>
+          )}
         </nav>
+
 
         {/* ACTIONS RIGHT */}
         <div className="flex items-center gap-3 sm:gap-4">
@@ -163,13 +157,18 @@ export const Navbar: React.FC<NavbarProps> = ({
               Consultar
             </span>
           </button>
-          <a
-            href="#contacto"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 text-base font-medium text-gray-200 hover:text-gold-300 rounded-lg hover:bg-emerald-900/40"
-          >
-            Contacto & Ubicación
-          </a>
+          {onOpenMapsModal && (
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onOpenMapsModal();
+              }}
+              className="w-full text-left px-3 py-2 text-base font-medium text-gray-200 hover:text-gold-300 rounded-lg hover:bg-emerald-900/40 flex items-center gap-2"
+            >
+              <MapPin className="w-4 h-4 text-gold-400" />
+              <span>Ver Ubicación & Google Maps</span>
+            </button>
+          )}
 
           <div className="pt-2 border-t border-gold-500/20 flex flex-col gap-2">
             <button

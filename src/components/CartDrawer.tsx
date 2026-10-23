@@ -18,6 +18,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { getBusinessPaymentConfig, BusinessPaymentConfig } from "@/lib/configService";
+import { getBottleForSize } from "@/lib/bottleSizes";
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -192,8 +193,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           <span className="text-[10px] uppercase tracking-wider text-gold-400 font-medium truncate">
                             {item.producto.marca_casa}
                           </span>
-                          <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-gold-400/20 text-gold-300 border border-gold-400/30">
-                            {vol} ml
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-gold-400/20 text-gold-300 border border-gold-400/30 inline-flex items-center gap-1">
+                            <img
+                              src={getBottleForSize(vol).imagen_frasco}
+                              alt=""
+                              className="w-3 h-3 object-contain inline"
+                            />
+                            <span>{vol} ml • {getBottleForSize(vol).tag}</span>
                           </span>
                         </div>
                         <h4 className="text-xs font-bold text-white truncate font-serif mt-0.5">

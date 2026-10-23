@@ -1,43 +1,46 @@
 "use client";
 
 import React from "react";
-import { MapPin, Phone, Clock, Award, ShieldCheck, Heart } from "lucide-react";
+import { MapPin, Phone, Clock, Award, ShieldCheck, Heart, Navigation } from "lucide-react";
 import Link from "next/link";
+import { VecarEmblem } from "./VecarLogo";
 
 interface FooterProps {
   onOpenClubModal: () => void;
+  onOpenMapsModal?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenClubModal }) => {
+export const Footer: React.FC<FooterProps> = ({ onOpenClubModal, onOpenMapsModal }) => {
   return (
     <footer id="contacto" className="w-full bg-[#030d0a] border-t border-gold-500/20 pt-16 pb-12 text-gray-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
           
-          {/* BRAND */}
+          {/* BRAND CON EMBLEMA VECTORIAL OFICIAL */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full border border-gold-400/50 flex items-center justify-center bg-emerald-950 text-gold-400">
-                <Award className="w-4 h-4" />
+              <div className="w-10 h-10 rounded-full border border-gold-400/50 flex items-center justify-center bg-emerald-950/90 text-gold-400 shadow-gold-glow shrink-0">
+                <VecarEmblem className="w-7 h-6 text-gold-300" />
               </div>
-              <div>
-                <span className="font-serif text-xl font-bold tracking-widest text-white block">
-                  VECAR
+              <div className="flex flex-col leading-none">
+                <span className="font-serif italic text-2xl font-bold text-white block">
+                  Vecar
                 </span>
-                <span className="text-[9px] tracking-[0.3em] text-gold-400 uppercase -mt-1 block">
+                <div className="w-full h-[1px] bg-gold-400/50 my-0.5" />
+                <span className="text-[9px] tracking-[0.28em] text-gold-400 font-bold uppercase block">
                   PERFUMERÍA
                 </span>
               </div>
             </div>
 
             <p className="text-xs text-emerald-100/70 leading-relaxed font-light">
-              Perfumería de autor, fragancias árabes de tendencia y las mejores inspiraciones de alta gama en Cochabamba, Bolivia.
+              Perfumería de autor, fragancias árabes de tendencia y las mejores inspiraciones con 40% de esencia pura en Cochabamba, Bolivia.
             </p>
 
             <div className="pt-2 text-xs text-gold-300 flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-gold-400" />
-              <span>Garantía de Fijación & Calidad</span>
+              <span>Garantía de Fijación 8 a 12 Horas</span>
             </div>
           </div>
 
@@ -47,12 +50,23 @@ export const Footer: React.FC<FooterProps> = ({ onOpenClubModal }) => {
               Tienda Física & Contacto
             </h4>
             
-            <div className="space-y-2 text-xs">
+            <div className="space-y-2.5 text-xs">
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-gold-400 shrink-0 mt-0.5" />
-                <span className="text-emerald-100/80">
-                  Av. Heroínas entre Av. Oquendo y Calle 16 de Julio, Cochabamba, Bolivia.
-                </span>
+                <div>
+                  <span className="text-emerald-100/80 block">
+                    Av. Heroínas entre Av. Oquendo y Calle 16 de Julio, Cochabamba.
+                  </span>
+                  {onOpenMapsModal && (
+                    <button
+                      onClick={onOpenMapsModal}
+                      className="mt-1 text-[11px] text-gold-300 hover:text-white underline underline-offset-2 flex items-center gap-1 font-medium"
+                    >
+                      <Navigation className="w-3 h-3" />
+                      <span>Abrir Mapa & Cómo Llegar</span>
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center gap-2.5">
@@ -75,6 +89,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenClubModal }) => {
               </div>
             </div>
           </div>
+
 
           {/* VECAR CLUB & ENLACES RÁPIDOS */}
           <div className="space-y-3">

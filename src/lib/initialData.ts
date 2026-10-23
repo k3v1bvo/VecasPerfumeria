@@ -5014,12 +5014,64 @@ export const INITIAL_CLIENTS: Cliente[] = [
     "fecha_nacimiento": "1992-06-15",
     "sellos_acumulados": 7,
     "sellos_por_tamano": {
-      "ml20": 0,
+      "ml10": 1,
+      "ml30": 1,
       "ml50": 5,
       "ml100": 2
     },
-    "total_compras_bob": 630,
+    "total_compras_bob": 680,
     "activo": true,
+    "historial_compras": [
+      {
+        "id": "compra-105",
+        "fecha": "2026-10-21T16:20:00Z",
+        "producto_nombre": "Sauvage (Dior)",
+        "volumen_ml": 50,
+        "precio_bob": 90,
+        "metodo_pago": "QR",
+        "otorgo_sello": true,
+        "notas": "Sello #7 oficial"
+      },
+      {
+        "id": "compra-104",
+        "fecha": "2026-09-14T11:45:00Z",
+        "producto_nombre": "Club de Nuit Intense (Armaf)",
+        "volumen_ml": 100,
+        "precio_bob": 145,
+        "metodo_pago": "EFECTIVO",
+        "otorgo_sello": false,
+        "notas": "Gran Reserva Señorial"
+      },
+      {
+        "id": "compra-103",
+        "fecha": "2026-07-02T18:10:00Z",
+        "producto_nombre": "Baccarat Rouge 540 (Maison F. Kurkdjian)",
+        "volumen_ml": 50,
+        "precio_bob": 90,
+        "metodo_pago": "QR",
+        "otorgo_sello": true,
+        "notas": "Sello #6 oficial"
+      },
+      {
+        "id": "compra-102",
+        "fecha": "2026-05-18T15:30:00Z",
+        "producto_nombre": "Acqua Di Gio (Giorgio Armani)",
+        "volumen_ml": 30,
+        "precio_bob": 70,
+        "metodo_pago": "EFECTIVO",
+        "otorgo_sello": false
+      },
+      {
+        "id": "compra-101",
+        "fecha": "2026-03-10T12:00:00Z",
+        "producto_nombre": "Invictus (Paco Rabanne)",
+        "volumen_ml": 50,
+        "precio_bob": 90,
+        "metodo_pago": "EFECTIVO",
+        "otorgo_sello": true,
+        "notas": "Sello #5 oficial"
+      }
+    ],
     "creado_en": "2026-01-10T14:30:00Z"
   },
   {
@@ -5030,12 +5082,44 @@ export const INITIAL_CLIENTS: Cliente[] = [
     "fecha_nacimiento": "1996-11-20",
     "sellos_acumulados": 4,
     "sellos_por_tamano": {
-      "ml20": 1,
+      "ml10": 1,
+      "ml30": 1,
       "ml50": 3,
       "ml100": 0
     },
-    "total_compras_bob": 310,
+    "total_compras_bob": 340,
     "activo": true,
+    "historial_compras": [
+      {
+        "id": "compra-203",
+        "fecha": "2026-10-18T17:15:00Z",
+        "producto_nombre": "Cloud (Ariana Grande)",
+        "volumen_ml": 50,
+        "precio_bob": 90,
+        "metodo_pago": "QR",
+        "otorgo_sello": true,
+        "notas": "Sello #4 oficial"
+      },
+      {
+        "id": "compra-202",
+        "fecha": "2026-08-05T14:00:00Z",
+        "producto_nombre": "Good Girl (Carolina Herrera)",
+        "volumen_ml": 50,
+        "precio_bob": 90,
+        "metodo_pago": "EFECTIVO",
+        "otorgo_sello": true,
+        "notas": "Sello #3 oficial"
+      },
+      {
+        "id": "compra-201",
+        "fecha": "2026-06-12T10:30:00Z",
+        "producto_nombre": "212 Vip (Carolina Herrera)",
+        "volumen_ml": 30,
+        "precio_bob": 70,
+        "metodo_pago": "QR",
+        "otorgo_sello": false
+      }
+    ],
     "creado_en": "2026-02-04T11:15:00Z"
   },
   {
@@ -5046,12 +5130,43 @@ export const INITIAL_CLIENTS: Cliente[] = [
     "fecha_nacimiento": "1988-03-08",
     "sellos_acumulados": 10,
     "sellos_por_tamano": {
-      "ml20": 0,
-      "ml50": 3,
-      "ml100": 7
+      "ml10": 0,
+      "ml30": 0,
+      "ml50": 4,
+      "ml100": 6
     },
-    "total_compras_bob": 1285,
+    "total_compras_bob": 1230,
     "activo": true,
+    "historial_compras": [
+      {
+        "id": "compra-303",
+        "fecha": "2026-10-19T19:00:00Z",
+        "producto_nombre": "One Million (Paco Rabanne)",
+        "volumen_ml": 50,
+        "precio_bob": 90,
+        "metodo_pago": "QR",
+        "otorgo_sello": true,
+        "notas": "¡Sello #10 completado! Listo para canje."
+      },
+      {
+        "id": "compra-302",
+        "fecha": "2026-09-02T13:40:00Z",
+        "producto_nombre": "Scandal Pour Homme (Jean Paul Gaultier)",
+        "volumen_ml": 50,
+        "precio_bob": 90,
+        "metodo_pago": "EFECTIVO",
+        "otorgo_sello": true
+      },
+      {
+        "id": "compra-301",
+        "fecha": "2026-07-20T16:10:00Z",
+        "producto_nombre": "Le Male Elixir (Jean Paul Gaultier)",
+        "volumen_ml": 100,
+        "precio_bob": 145,
+        "metodo_pago": "QR",
+        "otorgo_sello": false
+      }
+    ],
     "creado_en": "2025-11-18T16:00:00Z"
   }
 ];

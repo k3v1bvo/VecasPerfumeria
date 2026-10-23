@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { Cliente } from "@/types/database";
 import { findCliente, registerCliente } from "@/lib/dataService";
-import { X, Search, Award, Gift, Sparkles, CheckCircle2, UserPlus, Phone, Mail, Calendar } from "lucide-react";
+import { X, Search, Award, Gift, Sparkles, CheckCircle2, UserPlus, Phone, Mail, Calendar, History } from "lucide-react";
 import confetti from "canvas-confetti";
-import { Interactive3DCard } from "./Interactive3DCard";
+import { PhysicalCard3D } from "./PhysicalCard3D";
 import { calculatePremioSugerido } from "@/lib/loyaltyRules";
 
 interface VecarClubModalProps {
@@ -156,9 +156,11 @@ export const VecarClubModal: React.FC<VecarClubModalProps> = ({
 
         {/* RESULT: CLIENT CARD FOUND */}
         {cliente && (
-          <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
-            {/* 3D VIP CARD */}
-            <Interactive3DCard cliente={cliente} interactive={true} />
+          <div className="space-y-5 animate-in slide-in-from-bottom-2 duration-300">
+            {/* 3D PHYSICAL OFFICIAL CARD */}
+            <div className="w-full max-w-md mx-auto py-1">
+              <PhysicalCard3D initialStamps={cliente.sellos_acumulados} interactiveStamps={true} />
+            </div>
 
             {/* PROGRESS STATUS ALERT WITH DYNAMIC PRESENTATION */}
             {(() => {
@@ -182,21 +184,44 @@ export const VecarClubModal: React.FC<VecarClubModalProps> = ({
                 <div className="p-3.5 rounded-xl bg-emerald-950/70 border border-emerald-700/50 space-y-2 text-xs">
                   <div className="flex items-center justify-between text-emerald-100/90">
                     <span>
-                      Te faltan <strong className="text-gold-300 font-bold">{10 - cliente.sellos_acumulados} sellos</strong> para tu perfume gratis.
+                      Te faltan <strong className="text-gold-300 font-bold">{10 - cliente.sellos_acumulados} sellos</strong> para tu perfume gratis de 50ML.
                     </span>
-                    <span className="text-[10px] text-gold-400 font-mono">1 compra = 1 sello</span>
-                  </div>
-                  <div className="p-2 rounded-lg bg-emerald-900/40 border border-gold-400/20 text-[11px] text-gold-200">
-                    <p className="font-semibold text-gold-300 mb-0.5">
-                      🎁 Premio proyectado: Perfume de {premio.tamanoMl} ML GRATIS
-                    </p>
-                    <p className="text-[10px] text-emerald-200/80">
-                      En Vecar Club premiamos tu fidelidad entregándote la presentación que más compraste durante tus 10 sellos ({premio.desglose.ml50} de 50ml, {premio.desglose.ml100} de 100ml, {premio.desglose.ml30} de 30ml, {premio.desglose.ml10} de 10ml).
-                    </p>
+                    <span className="text-[10px] text-gold-400 font-mono">1 compra 50ML = 1 sello</span>
                   </div>
                 </div>
               );
             })()}
+
+            {/* HISTORIAL DE COMPRAS REGISTRADAS */}
+            {cliente.historial_compras && cliente.historial_compras.length > 0 && (
+              <div className="space-y-2 pt-1 border-t border-gold-400/20">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-gold-300 font-mono flex items-center gap-1.5">
+                  <History className="w-3.5 h-3.5 text-gold-400" />
+                  <span>Historial de Perfumes Adquiridos ({cliente.historial_compras.length})</span>
+                </span>
+                <div className="divide-y divide-gold-400/15 max-h-44 overflow-y-auto rounded-xl bg-black/40 border border-gold-400/20 p-2">
+                  {cliente.historial_compras.map((compra) => (
+                    <div key={compra.id} className="p-2 flex items-center justify-between gap-2 text-xs">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-white">{compra.producto_nombre}</span>
+                          <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-emerald-950 text-gold-300 border border-gold-400/30 uppercase">
+                            {compra.volumen_ml} ML
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-gray-400 block mt-0.5">
+                          {new Date(compra.fecha).toLocaleDateString("es-BO", { day: "2-digit", month: "short" })}
+                          {compra.otorgo_sello && " • 🟣 +1 Sello Oficial"}
+                        </span>
+                      </div>
+                      <span className="font-mono font-bold text-gold-300 text-xs shrink-0">
+                        Bs. {compra.precio_bob}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
               {/* WHATSAPP ACTION BUTTON */}
               <div className="mt-5">
