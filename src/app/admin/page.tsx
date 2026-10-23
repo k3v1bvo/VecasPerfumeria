@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Producto, Cliente } from "@/types/database";
 import {
   getProductos,
@@ -61,8 +61,21 @@ export default function AdminPage() {
 
   // Catalogo state
   const [productos, setProductos] = useState<Producto[]>([]);
+  const [adminProductSearch, setAdminProductSearch] = useState("");
   const [editingProduct, setEditingProduct] = useState<Partial<Producto> | null>(null);
   const [showProductModal, setShowProductModal] = useState(false);
+
+  const filteredAdminProducts = useMemo(() => {
+    if (!adminProductSearch.trim()) return productos;
+    const q = adminProductSearch.toLowerCase();
+    return productos.filter(
+      (p) =>
+        p.nombre.toLowerCase().includes(q) ||
+        p.marca_casa.toLowerCase().includes(q) ||
+        p.categoria.toLowerCase().includes(q) ||
+        (p.notas_olfativas && p.notas_olfativas.toLowerCase().includes(q))
+    );
+  }, [productos, adminProductSearch]);
 
   // QR Code generator state
   const [qrType, setQrType] = useState<"web" | "club" | "whatsapp">("web");
@@ -681,10 +694,40 @@ export default function AdminPage() {
               </button>
             </div>
 
+            {/* PRODUCT SEARCH & STATS */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-emerald-950/60 border border-gold-400/20">
+              <div className="w-full sm:w-80 relative">
+                <input
+                  type="text"
+                  value={adminProductSearch}
+                  onChange={(e) => setAdminProductSearch(e.target.value)}
+                  placeholder="Buscar entre los 215 perfumes..."
+                  className="w-full pl-9 pr-4 py-2 rounded-lg bg-emerald-900/40 border border-gold-400/30 text-white placeholder-emerald-200/40 text-xs focus:outline-none focus:border-gold-400"
+                />
+                <Package className="w-4 h-4 text-gold-400/70 absolute left-3 top-1/2 -translate-y-1/2" />
+                {adminProductSearch && (
+                  <button
+                    onClick={() => setAdminProductSearch("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-gold-300 hover:text-white"
+                  >
+                    Limpiar
+                  </button>
+                )}
+              </div>
+              <div className="text-xs text-emerald-200/80 font-mono self-end sm:self-auto">
+                Mostrando <strong className="text-gold-300">{filteredAdminProducts.length}</strong> de <strong className="text-white">{productos.length}</strong> fragancias
+              </div>
+            </div>
+
             {/* PRODUCT LIST */}
             <div className="rounded-2xl glass-emerald border border-gold-400/20 overflow-hidden">
-              <div className="divide-y divide-gold-500/10">
-                {productos.map((prod) => (
+              <div className="divide-y divide-gold-500/10 max-h-[680px] overflow-y-auto">
+                {filteredAdminProducts.length === 0 ? (
+                  <div className="p-8 text-center text-emerald-200/60 text-sm">
+                    No se encontraron fragancias con la búsqueda "{adminProductSearch}".
+                  </div>
+                ) : (
+                  filteredAdminProducts.map((prod) => (
                   <div
                     key={prod.id}
                     className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-emerald-900/30 transition-colors"
@@ -741,7 +784,7 @@ export default function AdminPage() {
                       </button>
                     </div>
                   </div>
-                ))}
+                )))}
               </div>
             </div>
 

@@ -86,17 +86,40 @@ export const Catalog: React.FC<CatalogProps> = ({
             </p>
           </div>
 
-          {/* DESCARGAR CATÁLOGO PDF (Feature estrella del Plan Económico) */}
-          <button
-            onClick={handleDownloadPdf}
-            disabled={isDownloadingPdf}
-            className="inline-flex items-center justify-center gap-2.5 px-6 py-3 rounded-full text-xs sm:text-sm font-semibold tracking-wider uppercase text-emerald-950 bg-gold-gradient hover:bg-gold-gradient-hover shadow-gold-glow transition-all duration-300 active:scale-95 disabled:opacity-70 shrink-0"
-          >
-            <FileDown className={`w-4 h-4 ${isDownloadingPdf ? "animate-bounce" : ""}`} />
-            <span>
-              {isDownloadingPdf ? "Generando PDF..." : "Descargar Catálogo PDF"}
-            </span>
-          </button>
+          {/* DESCARGAR CATÁLOGOS PDF OFICIALES + GENERADOR */}
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+            <a
+              href="/catalogos/Catalogo_Dama_Vecar_Perfumeria.pdf"
+              download="Catalogo_Dama_Vecar_Perfumeria.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs font-semibold tracking-wider uppercase text-pink-100 bg-pink-950/70 hover:bg-pink-900/80 border border-pink-400/40 shadow-sm hover:shadow-pink-500/20 transition-all duration-300 active:scale-95 shrink-0"
+            >
+              <FileDown className="w-3.5 h-3.5 text-pink-300" />
+              <span>Catálogo Dama (PDF)</span>
+            </a>
+
+            <a
+              href="/catalogos/Catalogo_Varon_Vecar_Perfumeria.pdf"
+              download="Catalogo_Varon_Vecar_Perfumeria.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs font-semibold tracking-wider uppercase text-blue-100 bg-blue-950/70 hover:bg-blue-900/80 border border-blue-400/40 shadow-sm hover:shadow-blue-500/20 transition-all duration-300 active:scale-95 shrink-0"
+            >
+              <FileDown className="w-3.5 h-3.5 text-blue-300" />
+              <span>Catálogo Varón (PDF)</span>
+            </a>
+
+            <button
+              onClick={handleDownloadPdf}
+              disabled={isDownloadingPdf}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs font-semibold tracking-wider uppercase text-emerald-950 bg-gold-gradient hover:bg-gold-gradient-hover shadow-gold-glow transition-all duration-300 active:scale-95 disabled:opacity-70 shrink-0"
+              title="Genera un archivo PDF con la selección actual"
+            >
+              <FileDown className={`w-3.5 h-3.5 ${isDownloadingPdf ? "animate-bounce" : ""}`} />
+              <span>{isDownloadingPdf ? "Generando..." : "Descargar Lista"}</span>
+            </button>
+          </div>
         </div>
 
         {/* CONTROLS: CATEGORIES & SEARCH BAR */}

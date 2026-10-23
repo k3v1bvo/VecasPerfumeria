@@ -10,6 +10,7 @@ import { Catalog } from "@/components/Catalog";
 import { CartDrawer } from "@/components/CartDrawer";
 import { VecarClubModal } from "@/components/VecarClubModal";
 import { ProductModal } from "@/components/ProductModal";
+import { FaqSection } from "@/components/FaqSection";
 import { Footer } from "@/components/Footer";
 
 export default function HomePage() {
@@ -142,6 +143,9 @@ export default function HomePage() {
         selectedCategory={catalogCategory}
         onSelectCategory={setCatalogCategory}
       />
+
+      {/* FAQ SECTION (Preguntas Frecuentes del Catálogo) */}
+      <FaqSection />
 
       {/* FOOTER */}
       <Footer
