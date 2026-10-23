@@ -26,12 +26,12 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
       <div 
-        className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl glass-emerald border border-gold-400/40 p-6 sm:p-8 shadow-2xl"
+        className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl glass-emerald border border-gold-400/40 p-5 sm:p-8 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-full text-gold-300 hover:text-white bg-emerald-950/70 border border-gold-400/20 hover:border-gold-300 transition-all z-10"
+          className="absolute top-4 right-4 sm:top-5 sm:right-5 p-2 rounded-full text-gold-300 hover:text-white bg-emerald-950/70 border border-gold-400/20 hover:border-gold-300 transition-all z-10"
         >
           <X className="w-5 h-5" />
         </button>
@@ -44,6 +44,12 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               src={producto.imagen_url}
               alt={producto.nombre}
               className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300"
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (!target.src.includes("unsplash")) {
+                  target.src = "https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&w=600&q=80";
+                }
+              }}
             />
             <div className="absolute top-3 left-3">
               <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-emerald-950 bg-gold-400 shadow-sm">
@@ -110,7 +116,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               <label className="text-[11px] font-bold uppercase tracking-wider text-gold-300 block mb-2">
                 Selecciona la Presentación / Frasco:
               </label>
-              <div className="grid grid-cols-4 gap-1.5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {BOTTLE_PRESENTATIONS.map((b) => {
                   const isSelected = selectedSize === b.ml;
                   return (

@@ -505,6 +505,12 @@ export const Catalog: React.FC<CatalogProps> = ({
                         alt={producto.nombre}
                         className="w-full h-full object-contain filter drop-shadow-[0_10px_15px_rgba(0,0,0,0.6)] group-hover:scale-105 transition-transform duration-500"
                         loading="lazy"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (!target.src.includes("unsplash")) {
+                            target.src = "https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&w=600&q=80";
+                          }
+                        }}
                       />
 
                       {/* TOP BADGES */}

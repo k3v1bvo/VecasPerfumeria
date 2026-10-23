@@ -61,6 +61,33 @@ export const Interactive3DCard: React.FC<Interactive3DCardProps> = ({
     setIsHovered(true);
   };
 
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!interactive || !cardRef.current || e.touches.length === 0) return;
+    const touch = e.touches[0];
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    const rotateX = Math.max(-14, Math.min(14, ((y - centerY) / centerY) * -12));
+    const rotateY = Math.max(-14, Math.min(14, ((x - centerX) / centerX) * 12));
+
+    setRotate({ x: rotateX, y: rotateY });
+    setGlare({
+      x: (x / rect.width) * 100,
+      y: (y / rect.height) * 100,
+      opacity: 0.85,
+    });
+  };
+
+  const handleTouchEnd = () => {
+    if (!interactive) return;
+    setIsHovered(false);
+    setRotate({ x: 0, y: 0 });
+    setGlare((prev) => ({ ...prev, opacity: 0 }));
+  };
+
   return (
     <div
       className="relative select-none w-full"
@@ -72,6 +99,9 @@ export const Interactive3DCard: React.FC<Interactive3DCardProps> = ({
         onMouseMove={handleMouseMove}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onTouchStart={() => setIsHovered(true)}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         onClick={onOpenClubModal}
         style={{
           transform: `rotateX(${rotate.x}deg) rotateY(${rotate.y}deg) ${
