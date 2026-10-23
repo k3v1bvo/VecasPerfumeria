@@ -12,6 +12,7 @@ import { VecarClubModal } from "@/components/VecarClubModal";
 import { ProductModal } from "@/components/ProductModal";
 import { FaqSection } from "@/components/FaqSection";
 import { Footer } from "@/components/Footer";
+import { getPriceForSize } from "@/lib/bottleSizes";
 
 export default function HomePage() {
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -55,23 +56,36 @@ export default function HomePage() {
   };
 
   // Cart operations
-  const handleAddToCart = (producto: Producto) => {
-    const existsIndex = cart.findIndex((item) => item.producto.id === producto.id);
+  const handleAddToCart = (producto: Producto, presentacion_ml: number = 50, customPrice?: number) => {
+    const unitPrice = customPrice || getPriceForSize(presentacion_ml);
+    const cartItemId = `${producto.id}-${presentacion_ml}`;
+    const existsIndex = cart.findIndex((item) => (item.id || item.producto.id) === cartItemId);
     let updated: CartItem[];
     if (existsIndex >= 0) {
       updated = cart.map((item, idx) =>
         idx === existsIndex ? { ...item, cantidad: item.cantidad + 1 } : item
       );
     } else {
-      updated = [...cart, { producto, cantidad: 1 }];
+      updated = [
+        ...cart,
+        {
+          id: cartItemId,
+          producto,
+          cantidad: 1,
+          presentacion_ml,
+          precio_unitario: unitPrice,
+        },
+      ];
     }
     saveCart(updated);
+    setIsCartOpen(true);
   };
 
-  const handleUpdateQuantity = (productId: string, delta: number) => {
+  const handleUpdateQuantity = (cartItemId: string, delta: number) => {
     const updated = cart
       .map((item) => {
-        if (item.producto.id === productId) {
+        const id = item.id || item.producto.id;
+        if (id === cartItemId || item.producto.id === cartItemId) {
           const newQty = item.cantidad + delta;
           return newQty > 0 ? { ...item, cantidad: newQty } : null;
         }
@@ -82,8 +96,8 @@ export default function HomePage() {
     saveCart(updated);
   };
 
-  const handleRemoveItem = (productId: string) => {
-    const updated = cart.filter((item) => item.producto.id !== productId);
+  const handleRemoveItem = (cartItemId: string) => {
+    const updated = cart.filter((item) => (item.id || item.producto.id) !== cartItemId && item.producto.id !== cartItemId);
     saveCart(updated);
   };
 

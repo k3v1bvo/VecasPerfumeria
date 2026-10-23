@@ -13,6 +13,8 @@ export interface Producto {
   destacado?: boolean;
   imagen_url: string;
   notas_olfativas?: string;
+  familia_olfativa?: string;
+  familias_olfativas?: string[];
   descripcion?: string;
   creado_en?: string;
 }
@@ -26,6 +28,11 @@ export interface Cliente {
   sellos_acumulados: number;
   total_compras_bob: number;
   activo?: boolean;
+  sellos_por_tamano?: {
+    ml20: number;
+    ml50: number;
+    ml100: number;
+  };
   creado_en?: string;
   actualizado_en?: string;
 }
@@ -36,14 +43,18 @@ export interface SelloHistorial {
   tipo_movimiento: 'SUMA' | 'CANJE_PREMIO' | 'AJUSTE';
   cantidad: number;
   sellos_resultantes: number;
+  presentacion_ml?: number;
   nota?: string;
   registrado_por?: string;
   creado_en: string;
 }
 
 export interface CartItem {
+  id?: string;
   producto: Producto;
   cantidad: number;
+  presentacion_ml?: number; // 20 | 50 | 100
+  precio_unitario?: number;
 }
 
 export interface VentaItem {
@@ -51,6 +62,7 @@ export interface VentaItem {
   producto_id: string;
   producto_nombre: string;
   cantidad: number;
+  presentacion_ml?: number;
   precio_unitario: number;
   subtotal: number;
 }

@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import { Cliente } from "@/types/database";
 import { Award, Sparkles, Gift, CheckCircle2, ShieldCheck, Wifi } from "lucide-react";
+import { calculatePremioSugerido } from "@/lib/loyaltyRules";
 
 interface Interactive3DCardProps {
   cliente?: Cliente | null;
@@ -27,6 +28,7 @@ export const Interactive3DCard: React.FC<Interactive3DCardProps> = ({
   const clientName = cliente ? cliente.nombre_completo : "Alejandro Montaño";
   const clientPhone = cliente ? cliente.telefono : "75462800";
   const memberId = cliente ? `VC-${cliente.id.slice(0, 8).toUpperCase()}` : "VC-VIP-2026";
+  const premio = calculatePremioSugerido(cliente);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!interactive || !cardRef.current) return;
@@ -158,11 +160,16 @@ export const Interactive3DCard: React.FC<Interactive3DCardProps> = ({
                   >
                     {isFilled ? (
                       <>
-                        <span className="text-[9px] font-bold text-gold-200 tracking-tighter">50ml</span>
+                        <span className="text-[9px] font-bold text-gold-200 tracking-tighter">
+                          {idx === 9 ? `🎁 ${premio.tamanoMl}ml` : "Sello"}
+                        </span>
                         <span className="text-[7px] text-gold-400/90 font-mono">#{stampNum}</span>
                       </>
                     ) : isGift ? (
-                      <Gift className="w-4 h-4 text-gold-400" />
+                      <div className="flex flex-col items-center">
+                        <Gift className="w-4 h-4 text-gold-400" />
+                        <span className="text-[6.5px] text-gold-300 font-bold uppercase mt-0.5">{premio.tamanoMl}ml</span>
+                      </div>
                     ) : (
                       <span className="text-[9px] font-medium font-mono">{stampNum}</span>
                     )}
@@ -191,12 +198,17 @@ export const Interactive3DCard: React.FC<Interactive3DCardProps> = ({
             <div className="text-right">
               {currentStamps >= 10 ? (
                 <span className="text-xs font-bold text-gold-300 bg-gold-400/20 px-3 py-1 rounded-full border border-gold-400 animate-pulse">
-                  🎁 ¡Perfume 50ml Listo para Canjear!
+                  🎁 ¡Perfume {premio.tamanoMl} ML GRATIS Listo!
                 </span>
               ) : (
-                <span className="text-[11px] text-emerald-200/90">
-                  Te faltan <strong className="text-gold-300 font-bold">{10 - currentStamps} sellos</strong> para tu perfume gratis
-                </span>
+                <div className="flex flex-col items-end">
+                  <span className="text-[11px] text-emerald-200/90">
+                    Te faltan <strong className="text-gold-300 font-bold">{10 - currentStamps} sellos</strong>
+                  </span>
+                  <span className="text-[9.5px] text-gold-300 font-medium">
+                    Premio proyectado: Perfume {premio.tamanoMl} ML GRATIS
+                  </span>
+                </div>
               )}
             </div>
           </div>

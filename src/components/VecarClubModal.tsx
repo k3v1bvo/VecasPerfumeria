@@ -6,6 +6,7 @@ import { findCliente, registerCliente } from "@/lib/dataService";
 import { X, Search, Award, Gift, Sparkles, CheckCircle2, UserPlus, Phone, Mail, Calendar } from "lucide-react";
 import confetti from "canvas-confetti";
 import { Interactive3DCard } from "./Interactive3DCard";
+import { calculatePremioSugerido } from "@/lib/loyaltyRules";
 
 interface VecarClubModalProps {
   isOpen: boolean;
@@ -159,27 +160,43 @@ export const VecarClubModal: React.FC<VecarClubModalProps> = ({
             {/* 3D VIP CARD */}
             <Interactive3DCard cliente={cliente} interactive={true} />
 
-              {/* PROGRESS STATUS ALERT */}
-              {cliente.sellos_acumulados >= 10 ? (
-                <div className="p-3.5 rounded-xl bg-gold-400/20 border border-gold-400/60 flex items-center gap-3">
-                  <Sparkles className="w-5 h-5 text-gold-300 shrink-0" />
-                  <div className="text-xs">
-                    <strong className="text-gold-200 font-bold block">
-                      ¡FELICITACIONES! PERFUME 50ML GRATIS DISPONIBLE
+            {/* PROGRESS STATUS ALERT WITH DYNAMIC PRESENTATION */}
+            {(() => {
+              const premio = calculatePremioSugerido(cliente);
+              return cliente.sellos_acumulados >= 10 ? (
+                <div className="p-4 rounded-xl bg-gold-400/20 border border-gold-400/70 space-y-2">
+                  <div className="flex items-center gap-2.5">
+                    <Sparkles className="w-5 h-5 text-gold-300 shrink-0" />
+                    <strong className="text-gold-200 font-serif text-sm font-bold block">
+                      ¡FELICITACIONES! PERFUME DE {premio.tamanoMl} ML GRATIS DISPONIBLE
                     </strong>
-                    <span className="text-emerald-100/90">
-                      Presenta tu número en la tienda de Av. Heroínas o escribe por WhatsApp para coordinar tu fragancia gratis.
-                    </span>
                   </div>
+                  <p className="text-xs text-emerald-100/90 leading-relaxed">
+                    {premio.explicacion}
+                  </p>
+                  <p className="text-[11px] text-gold-300 font-medium">
+                    Presenta tu número en la tienda de Av. Heroínas o presiona el botón de abajo para solicitar tu canje por WhatsApp.
+                  </p>
                 </div>
               ) : (
-                <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-700/40 text-xs text-emerald-200/80 flex items-center justify-between">
-                  <span>
-                    Te faltan <strong className="text-gold-300 font-bold">{10 - cliente.sellos_acumulados} sellos</strong> para tu perfume de 50ml gratis.
-                  </span>
-                  <span className="text-[10px] text-gold-400">1 compra = 1 sello</span>
+                <div className="p-3.5 rounded-xl bg-emerald-950/70 border border-emerald-700/50 space-y-2 text-xs">
+                  <div className="flex items-center justify-between text-emerald-100/90">
+                    <span>
+                      Te faltan <strong className="text-gold-300 font-bold">{10 - cliente.sellos_acumulados} sellos</strong> para tu perfume gratis.
+                    </span>
+                    <span className="text-[10px] text-gold-400 font-mono">1 compra = 1 sello</span>
+                  </div>
+                  <div className="p-2 rounded-lg bg-emerald-900/40 border border-gold-400/20 text-[11px] text-gold-200">
+                    <p className="font-semibold text-gold-300 mb-0.5">
+                      🎁 Premio proyectado: Perfume de {premio.tamanoMl} ML GRATIS
+                    </p>
+                    <p className="text-[10px] text-emerald-200/80">
+                      En Vecar Club premiamos tu fidelidad entregándote la presentación que más compraste durante tus 10 sellos ({premio.desglose.ml50} de 50ml, {premio.desglose.ml100} de 100ml, {premio.desglose.ml30} de 30ml, {premio.desglose.ml10} de 10ml).
+                    </p>
+                  </div>
                 </div>
-              )}
+              );
+            })()}
 
               {/* WHATSAPP ACTION BUTTON */}
               <div className="mt-5">

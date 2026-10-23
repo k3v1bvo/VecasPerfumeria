@@ -194,7 +194,8 @@ export async function registerCliente(clienteData: {
 export async function updateClienteSellos(
   clienteId: string, 
   delta: number, 
-  motivo?: string
+  motivo?: string,
+  presentacion_ml: number = 50
 ): Promise<{ cliente: Cliente; anterior: number; nuevo: number }> {
   const list = await getClientes();
   const index = list.findIndex(c => c.id === clienteId);
@@ -204,9 +205,18 @@ export async function updateClienteSellos(
   const anterior = actual.sellos_acumulados;
   let nuevo = Math.max(0, Math.min(10, anterior + delta));
 
+  const currentDesglose = actual.sellos_por_tamano || { ml20: 0, ml50: anterior, ml100: 0 };
+  const updatedDesglose = { ...currentDesglose };
+  if (delta > 0) {
+    if (presentacion_ml === 20) updatedDesglose.ml20 += delta;
+    else if (presentacion_ml === 100) updatedDesglose.ml100 += delta;
+    else updatedDesglose.ml50 += delta;
+  }
+
   const updatedClient: Cliente = {
     ...actual,
     sellos_acumulados: nuevo,
+    sellos_por_tamano: updatedDesglose,
     actualizado_en: new Date().toISOString()
   };
 
@@ -219,7 +229,8 @@ export async function updateClienteSellos(
         tipo_movimiento: delta > 0 ? "SUMA" : "AJUSTE",
         cantidad: delta,
         sellos_resultantes: nuevo,
-        nota: motivo || "Actualización manual en panel"
+        presentacion_ml,
+        nota: motivo ? `${motivo} (${presentacion_ml} ml)` : `Sello por fragancia de ${presentacion_ml} ml`
       }]);
     } catch (e) {
       console.warn("Supabase update sellos error", e);
@@ -232,7 +243,7 @@ export async function updateClienteSellos(
   return { cliente: updatedClient, anterior, nuevo };
 }
 
-export async function canjearPremioFidelidad(clienteId: string): Promise<Cliente> {
+export async function canjearPremioFidelidad(clienteId: string, presentacion_ml: number = 50): Promise<Cliente> {
   const list = await getClientes();
   const index = list.findIndex(c => c.id === clienteId);
   if (index === -1) throw new Error("Cliente no encontrado");
@@ -241,6 +252,7 @@ export async function canjearPremioFidelidad(clienteId: string): Promise<Cliente
   const updatedClient: Cliente = {
     ...actual,
     sellos_acumulados: 0, // Reinicia la tarjeta para el próximo ciclo
+    sellos_por_tamano: { ml20: 0, ml50: 0, ml100: 0 },
     actualizado_en: new Date().toISOString()
   };
 
@@ -252,7 +264,8 @@ export async function canjearPremioFidelidad(clienteId: string): Promise<Cliente
         tipo_movimiento: "CANJE_PREMIO",
         cantidad: -10,
         sellos_resultantes: 0,
-        nota: "Canje exitoso de Perfume 50ml Gratis por 10 sellos completados"
+        presentacion_ml,
+        nota: `Canje exitoso de Perfume ${presentacion_ml}ml Gratis por 10 sellos completados`
       }]);
     } catch (e) {
       console.warn("Supabase canjear premio error", e);

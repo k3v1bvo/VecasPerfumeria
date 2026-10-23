@@ -37,6 +37,15 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import confetti from "canvas-confetti";
+import { Interactive3DCard } from "@/components/Interactive3DCard";
+import { calculatePremioSugerido } from "@/lib/loyaltyRules";
+import {
+  getBusinessPaymentConfig,
+  saveBusinessPaymentConfig,
+  BusinessPaymentConfig,
+} from "@/lib/configService";
+import { BOTTLE_PRESENTATIONS } from "@/lib/bottleSizes";
+import { Upload, Image as ImageIcon } from "lucide-react";
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -152,36 +161,62 @@ export default function AdminPage() {
     generateQr();
   }, [qrType, isAuthenticated]);
 
-  // STAMPS ACTIONS
-  const handleAddStamp = async (clienteId: string, delta: number) => {
+  // Payment Config State
+  const [paymentConfig, setPaymentConfig] = useState<BusinessPaymentConfig>(getBusinessPaymentConfig());
+
+  // STAMPS ACTIONS (CON PRESENTACIONES OFICIALES: 10ML, 30ML, 50ML, 100ML)
+  const handleAddStamp = async (clienteId: string, delta: number, presentacion_ml: number = 50) => {
     try {
-      const res = await updateClienteSellos(clienteId, delta, "Asignación manual en panel administrativo");
+      const res = await updateClienteSellos(clienteId, delta, `Compra en mostrador (${presentacion_ml} ML)`, presentacion_ml);
       setSelectedClient(res.cliente);
-      setFeedbackMsg(`Sello actualizado con éxito: ${res.nuevo} / 10`);
+      setFeedbackMsg(`Sello (${presentacion_ml} ML) registrado con éxito: ${res.nuevo} / 10`);
       loadData();
       if (res.nuevo === 10) {
-        confetti({ particleCount: 70, spread: 60 });
+        confetti({ particleCount: 90, spread: 70 });
       }
-      setTimeout(() => setFeedbackMsg(null), 3000);
+      setTimeout(() => setFeedbackMsg(null), 3500);
     } catch (e) {
       console.error(e);
     }
   };
 
-  const handleRedeemPrize = async (clienteId: string) => {
-    if (!confirm("¿Confirmar que el cliente está canjeando su perfume de 50ml gratis? Se reiniciarán sus sellos a 0 para el siguiente ciclo.")) {
+  const handleRedeemPrize = async (clienteId: string, presentacion_ml: number = 50) => {
+    if (!confirm(`¿Confirmar entrega de PERFUME DE ${presentacion_ml} ML GRATIS al cliente? Sus sellos se reiniciarán a 0 para el nuevo ciclo de compras.`)) {
       return;
     }
     try {
-      const res = await canjearPremioFidelidad(clienteId);
+      const res = await canjearPremioFidelidad(clienteId, presentacion_ml);
       setSelectedClient(res);
-      setFeedbackMsg("¡Premio de 50ml canjeado con éxito! Sellos reiniciados a 0.");
+      setFeedbackMsg(`¡Premio de ${presentacion_ml} ML entregado con éxito! Tarjeta reiniciada a 0.`);
       loadData();
-      confetti({ particleCount: 100, spread: 80 });
+      confetti({ particleCount: 120, spread: 90, origin: { y: 0.6 } });
       setTimeout(() => setFeedbackMsg(null), 4000);
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const handleUploadQrImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        const updated = saveBusinessPaymentConfig({ qr_imagen_url: dataUrl });
+        setPaymentConfig(updated);
+        setFeedbackMsg("¡Código QR de pago actualizado con éxito!");
+        setTimeout(() => setFeedbackMsg(null), 3500);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveBankInfo = (e: React.FormEvent) => {
+    e.preventDefault();
+    saveBusinessPaymentConfig(paymentConfig);
+    setFeedbackMsg("Datos bancarios y de cobro guardados con éxito.");
+    setTimeout(() => setFeedbackMsg(null), 3000);
   };
 
   const handleCreateClient = async (e: React.FormEvent) => {
@@ -562,83 +597,121 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Selected Client Card Details */}
-              <div className="rounded-2xl glass-emerald border border-gold-400/30 p-6 self-start space-y-5">
+              {/* Selected Client Card Details (TARJETA 3D INTERACTIVA + CONTROL DE SELLOS) */}
+              <div className="rounded-3xl glass-emerald border border-gold-400/30 p-5 sm:p-6 self-start space-y-5">
                 {selectedClient ? (
                   <>
-                    <div className="border-b border-gold-400/20 pb-4">
-                      <span className="text-[10px] font-mono tracking-widest text-gold-400 uppercase">
-                        TARJETA DIGITAL
-                      </span>
-                      <h3 className="font-serif text-xl font-bold text-white">
-                        {selectedClient.nombre_completo}
-                      </h3>
-                      <p className="text-xs text-emerald-200/70 font-mono mt-0.5">
-                        WhatsApp: {selectedClient.telefono}
-                      </p>
-                      <p className="text-xs text-emerald-200/70 font-mono">
-                        Correo: {selectedClient.email}
-                      </p>
-                    </div>
-
-                    {/* 10 SELLOS PREVIEW */}
-                    <div>
-                      <div className="flex items-center justify-between text-xs mb-2.5">
-                        <span className="text-gold-300 font-medium">Estado de Fidelidad:</span>
-                        <span className="font-mono font-bold text-gold-400">
-                          {selectedClient.sellos_acumulados} de 10
+                    <div className="flex items-center justify-between border-b border-gold-400/20 pb-3">
+                      <div>
+                        <span className="text-[10px] font-mono tracking-widest text-gold-400 uppercase block">
+                          TARJETA DIGITAL VIP 3D
                         </span>
+                        <h3 className="font-serif text-xl font-bold text-white">
+                          {selectedClient.nombre_completo}
+                        </h3>
+                        <p className="text-xs text-emerald-200/70 font-mono">
+                          WhatsApp: {selectedClient.telefono}
+                        </p>
                       </div>
-
-                      <div className="grid grid-cols-5 gap-2">
-                        {Array.from({ length: 10 }).map((_, idx) => {
-                          const num = idx + 1;
-                          const isFilled = num <= selectedClient.sellos_acumulados;
-                          return (
-                            <div
-                              key={idx}
-                              className={`h-9 rounded-full flex flex-col items-center justify-center text-[8px] font-bold ${
-                                isFilled
-                                  ? "bg-[#5c1a29] border border-gold-400 text-gold-200"
-                                  : "border border-dashed border-gold-400/30 bg-emerald-950/40 text-gold-400/50"
-                              }`}
-                            >
-                              <span>{isFilled ? "50ml" : num}</span>
-                            </div>
-                          );
-                        })}
+                      <div className="px-3 py-1.5 rounded-full bg-gold-400/20 border border-gold-400 text-gold-300 text-xs font-mono font-bold">
+                        {selectedClient.sellos_acumulados} / 10
                       </div>
                     </div>
 
-                    {/* CONTROL BUTTONS */}
+                    {/* 3D INTERACTIVE CARD IN ADMIN (REAL-TIME MOTION & GLARE) */}
+                    <div className="py-1">
+                      <Interactive3DCard cliente={selectedClient} interactive={true} />
+                    </div>
+
+                    {/* QUICK STAMP ASSIGNMENT BY BOTTLE SIZE */}
                     <div className="space-y-2 pt-2">
-                      <div className="flex gap-2">
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-gold-300 block">
+                        Sumar Sello según Envase Vendido:
+                      </label>
+                      
+                      <div className="grid grid-cols-2 gap-2">
                         <button
-                          onClick={() => handleAddStamp(selectedClient.id, 1)}
-                          className="flex-1 py-2.5 rounded-xl text-xs font-bold uppercase text-emerald-950 bg-gold-400 hover:bg-gold-300 shadow-sm transition-all"
+                          onClick={() => handleAddStamp(selectedClient.id, 1, 10)}
+                          className="p-2 rounded-xl text-xs font-bold text-emerald-950 bg-emerald-400 hover:bg-emerald-300 shadow-sm transition-all text-left flex flex-col"
                         >
-                          +1 Sello (Compra 50ml)
+                          <span>+1 Sello 10 ML</span>
+                          <span className="text-[9px] opacity-80 font-mono">Bs. 40 (Pocket)</span>
                         </button>
+
+                        <button
+                          onClick={() => handleAddStamp(selectedClient.id, 1, 30)}
+                          className="p-2 rounded-xl text-xs font-bold text-emerald-950 bg-teal-400 hover:bg-teal-300 shadow-sm transition-all text-left flex flex-col"
+                        >
+                          <span>+1 Sello 30 ML</span>
+                          <span className="text-[9px] opacity-80 font-mono">Bs. 70 (Personal)</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleAddStamp(selectedClient.id, 1, 50)}
+                          className="p-2 rounded-xl text-xs font-bold text-emerald-950 bg-gold-400 hover:bg-gold-300 shadow-sm transition-all text-left flex flex-col ring-1 ring-gold-300"
+                        >
+                          <span>+1 Sello 50 ML</span>
+                          <span className="text-[9px] opacity-80 font-mono">Bs. 90 (Signature)</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleAddStamp(selectedClient.id, 1, 100)}
+                          className="p-2 rounded-xl text-xs font-bold text-emerald-950 bg-amber-400 hover:bg-amber-300 shadow-sm transition-all text-left flex flex-col"
+                        >
+                          <span>+1 Sello 100 ML</span>
+                          <span className="text-[9px] opacity-80 font-mono">Bs. 145 (Deluxe)</span>
+                        </button>
+                      </div>
+
+                      <div className="flex justify-end pt-1">
                         <button
                           onClick={() => handleAddStamp(selectedClient.id, -1)}
                           disabled={selectedClient.sellos_acumulados <= 0}
-                          className="px-3 py-2.5 rounded-xl text-xs font-bold text-gray-300 bg-emerald-950 border border-gold-400/30 hover:text-white disabled:opacity-40"
-                          title="Restar 1 sello por ajuste"
+                          className="text-[11px] font-mono text-gray-400 hover:text-red-400 transition-colors disabled:opacity-30"
                         >
-                          -1
+                          -1 Sello (Ajuste de error)
                         </button>
                       </div>
-
-                      {/* CANJE PERFUME GRATIS BUTTON */}
-                      {selectedClient.sellos_acumulados >= 10 && (
-                        <button
-                          onClick={() => handleRedeemPrize(selectedClient.id)}
-                          className="w-full py-3 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-gradient-to-r from-red-700 via-rose-600 to-red-800 shadow-lg border border-gold-400 animate-pulse transition-all"
-                        >
-                          🎁 Canjear Perfume 50ml Gratis (Reiniciar a 0)
-                        </button>
-                      )}
                     </div>
+
+                    {/* DYNAMIC PRIZE CALCULATION & REDEMPTION (BASED ON MOST PURCHASED SIZE) */}
+                    {(() => {
+                      const premio = calculatePremioSugerido(selectedClient);
+                      return (
+                        <div className="space-y-3 pt-2 border-t border-gold-400/20">
+                          {selectedClient.sellos_acumulados >= 10 ? (
+                            <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/20 via-gold-400/25 to-amber-600/20 border-2 border-gold-400 text-center space-y-2.5 shadow-gold-glow animate-pulse">
+                              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold-400 text-emerald-950 text-xs font-black uppercase tracking-wider">
+                                <Award className="w-4 h-4 text-emerald-950" />
+                                <span>¡PREMIO GANADO: 10 SELLOS!</span>
+                              </div>
+                              <h4 className="font-serif text-lg font-bold text-white">
+                                Perfume de {premio.tamanoMl} ML GRATIS
+                              </h4>
+                              <p className="text-[11px] text-gold-200 leading-relaxed">
+                                {premio.explicacion}
+                              </p>
+                              <button
+                                onClick={() => handleRedeemPrize(selectedClient.id, premio.tamanoMl)}
+                                className="w-full py-3 rounded-full text-xs font-bold uppercase tracking-wider text-emerald-950 bg-gold-gradient hover:bg-gold-gradient-hover shadow-lg transition-all active:scale-95"
+                              >
+                                🎁 Entregar Perfume {premio.tamanoMl} ML y Reiniciar Tarjeta a 0
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="p-3.5 rounded-xl bg-emerald-950/80 border border-gold-400/20 text-xs space-y-1.5">
+                              <div className="flex items-center justify-between text-gold-300">
+                                <span className="font-semibold">Premio proyectado:</span>
+                                <span className="font-bold text-white">Perfume {premio.tamanoMl} ML GRATIS</span>
+                              </div>
+                              <p className="text-[11px] text-emerald-200/80">
+                                Desglose actual: {premio.desglose.ml50} de 50ml • {premio.desglose.ml100} de 100ml • {premio.desglose.ml30} de 30ml • {premio.desglose.ml10} de 10ml.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </>
                 ) : (
                   <div className="text-center py-12 text-xs text-gray-400">
@@ -794,8 +867,143 @@ export default function AdminPage() {
         {/* ========================================================= */}
         {/* TAB 3: GENERADOR DE CÓDIGOS QR PARA VITRINAS              */}
         {/* ========================================================= */}
+        {/* ========================================================= */}
+        {/* TAB 3: GESTIÓN DE PAGOS QR Y CARTELES IMPRIMIBLES         */}
+        {/* ========================================================= */}
         {activeTab === "qr" && (
-          <div className="space-y-6 animate-in fade-in duration-200">
+          <div className="space-y-10 animate-in fade-in duration-200">
+            
+            {/* SECCIÓN 1: SUBIR Y ADMINISTRAR QR OFICIAL DE COBROS */}
+            <div className="p-6 rounded-3xl glass-emerald border border-gold-400/30 space-y-6">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-400/20 text-gold-300 text-[11px] font-bold uppercase tracking-wider mb-2 border border-gold-400/30">
+                  <QrCode className="w-3.5 h-3.5" />
+                  <span>Cobros por QR Simple en Tienda Online</span>
+                </div>
+                <h2 className="font-serif text-2xl font-bold text-white">
+                  Subir Código QR Oficial de Cobros (Bolivia)
+                </h2>
+                <p className="text-xs text-emerald-200/70 mt-1 max-w-2xl">
+                  Sube aquí la imagen o captura de tu código QR Simple (Banco Unión, BCP, BNB, Mercantil, etc.). Esta imagen se mostrará automáticamente a los clientes en el carrito de compras cuando elijan pagar el 100% o dejar un adelanto de reserva.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                
+                {/* UPLOADER & BANK DETAILS FORM */}
+                <form onSubmit={handleSaveBankInfo} className="space-y-4">
+                  {/* FILE UPLOAD BUTTON */}
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-gold-300 block mb-2">
+                      Subir Imagen del Código QR (JPG / PNG):
+                    </label>
+                    <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gold-400/40 rounded-2xl bg-emerald-950/60 hover:bg-emerald-900/40 cursor-pointer transition-colors group">
+                      <Upload className="w-8 h-8 text-gold-400 group-hover:scale-110 transition-transform mb-2" />
+                      <span className="text-xs font-semibold text-white">Haz clic para subir o cambiar el QR de cobro</span>
+                      <span className="text-[10px] text-emerald-300/60 mt-1">Soporta capturas de banca móvil o PDF exportado como imagen</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleUploadQrImage}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+
+                  {/* BANK FIELDS */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-semibold text-emerald-200/80 block mb-1">
+                        Banco / Red:
+                      </label>
+                      <input
+                        type="text"
+                        value={paymentConfig.banco_nombre}
+                        onChange={(e) => setPaymentConfig({ ...paymentConfig, banco_nombre: e.target.value })}
+                        placeholder="Ej. Banco Unión (QR Simple)"
+                        className="w-full px-3 py-2 rounded-xl text-xs bg-emerald-950 border border-gold-400/30 text-white focus:outline-none focus:border-gold-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-semibold text-emerald-200/80 block mb-1">
+                        Titular de la Cuenta:
+                      </label>
+                      <input
+                        type="text"
+                        value={paymentConfig.titular_cuenta}
+                        onChange={(e) => setPaymentConfig({ ...paymentConfig, titular_cuenta: e.target.value })}
+                        placeholder="Ej. Vecar Perfumería"
+                        className="w-full px-3 py-2 rounded-xl text-xs bg-emerald-950 border border-gold-400/30 text-white focus:outline-none focus:border-gold-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-semibold text-emerald-200/80 block mb-1">
+                        Número de Cuenta / Detalle:
+                      </label>
+                      <input
+                        type="text"
+                        value={paymentConfig.numero_cuenta}
+                        onChange={(e) => setPaymentConfig({ ...paymentConfig, numero_cuenta: e.target.value })}
+                        placeholder="Caja de Ahorro / QR Interbancario"
+                        className="w-full px-3 py-2 rounded-xl text-xs bg-emerald-950 border border-gold-400/30 text-white focus:outline-none focus:border-gold-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-semibold text-emerald-200/80 block mb-1">
+                        Adelanto Mínimo para Reservas (Bs.):
+                      </label>
+                      <input
+                        type="number"
+                        min={10}
+                        value={paymentConfig.adelanto_minimo_bob}
+                        onChange={(e) => setPaymentConfig({ ...paymentConfig, adelanto_minimo_bob: Number(e.target.value) || 50 })}
+                        className="w-full px-3 py-2 rounded-xl text-xs bg-emerald-950 border border-gold-400/30 text-white focus:outline-none focus:border-gold-400 font-bold"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 rounded-full text-xs font-bold uppercase tracking-wider text-emerald-950 bg-gold-gradient hover:bg-gold-gradient-hover shadow-gold-glow transition-all"
+                  >
+                    Guardar Configuración de Cobro QR
+                  </button>
+                </form>
+
+                {/* CURRENT LIVE QR PREVIEW */}
+                <div className="p-5 rounded-2xl bg-black/50 border border-gold-400/30 flex flex-col items-center text-center space-y-3">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-gold-400">
+                    VISTA PREVIA DEL QR EN EL CARRITO
+                  </span>
+
+                  <div className="p-3 rounded-2xl bg-white border-2 border-gold-400 shadow-xl max-w-[220px]">
+                    <img
+                      src={paymentConfig.qr_imagen_url || "/qr_vecar_oficial.png"}
+                      alt="QR de Pago Vecar"
+                      className="w-48 h-48 object-contain"
+                    />
+                  </div>
+
+                  <div className="text-xs">
+                    <p className="font-bold text-white text-sm">{paymentConfig.titular_cuenta}</p>
+                    <p className="text-gold-300 font-medium">{paymentConfig.banco_nombre}</p>
+                    <p className="text-[10px] text-emerald-200/60 mt-0.5">{paymentConfig.numero_cuenta}</p>
+                  </div>
+
+                  <div className="p-2 rounded-lg bg-emerald-900/40 border border-emerald-700/50 text-[10px] text-emerald-200/90 text-left w-full">
+                    ✓ Este es el código que verán los clientes en su celular al seleccionar "QR Simple" o "Dejar Adelanto".
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* SECCIÓN 2: CARTELES IMPRIMIBLES PARA VITRINA */}
             <div>
               <h2 className="font-serif text-2xl font-bold text-white">
                 Generador de Códigos QR para Mostradores y Vitrinas
