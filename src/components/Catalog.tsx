@@ -9,14 +9,21 @@ interface CatalogProps {
   productos: Producto[];
   onAddToCart: (producto: Producto) => void;
   onOpenProductModal: (producto: Producto) => void;
+  selectedCategory?: string;
+  onSelectCategory?: (category: string) => void;
 }
 
 export const Catalog: React.FC<CatalogProps> = ({
   productos,
   onAddToCart,
   onOpenProductModal,
+  selectedCategory: externalCategory,
+  onSelectCategory: externalSetCategory,
 }) => {
-  const [selectedCategory, setSelectedCategory] = useState<string>("Todos");
+  const [internalCategory, setInternalCategory] = useState<string>("Todos");
+  const selectedCategory = externalCategory ?? internalCategory;
+  const setSelectedCategory = externalSetCategory ?? setInternalCategory;
+
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isDownloadingPdf, setIsDownloadingPdf] = useState<boolean>(false);
   const [addedId, setAddedId] = useState<string | null>(null);

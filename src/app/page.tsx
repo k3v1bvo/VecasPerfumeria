@@ -5,6 +5,7 @@ import { Producto, CartItem } from "@/types/database";
 import { getProductos } from "@/lib/dataService";
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
+import { BentoShowcase } from "@/components/BentoShowcase";
 import { Catalog } from "@/components/Catalog";
 import { CartDrawer } from "@/components/CartDrawer";
 import { VecarClubModal } from "@/components/VecarClubModal";
@@ -18,6 +19,7 @@ export default function HomePage() {
   const [isClubModalOpen, setIsClubModalOpen] = useState(false);
   const [clubModalQuery, setClubModalQuery] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Producto | null>(null);
+  const [catalogCategory, setCatalogCategory] = useState<string>("Todos");
 
   // Load products & local cart
   useEffect(() => {
@@ -96,7 +98,10 @@ export default function HomePage() {
     setIsClubModalOpen(true);
   };
 
-  const handleScrollToCatalog = () => {
+  const handleScrollToCatalog = (category?: string) => {
+    if (category) {
+      setCatalogCategory(category);
+    }
     const el = document.getElementById("catalogo");
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
@@ -114,10 +119,19 @@ export default function HomePage() {
         }}
       />
 
-      {/* HERO SECTION (Option 1 Design) */}
+      {/* HERO SECTION (Option 1 Design with 3D Tilt Card and 3D Wax Seal) */}
       <Hero
         onCheckPhone={handleHeroCheckPhone}
-        onExploreCatalog={handleScrollToCatalog}
+        onExploreCatalog={() => handleScrollToCatalog()}
+        onOpenClubModal={() => {
+          setClubModalQuery("");
+          setIsClubModalOpen(true);
+        }}
+      />
+
+      {/* BENTO GRID SHOWCASE (Universos Olfativos & Tendencias 2026) */}
+      <BentoShowcase
+        onSelectCategory={(cat) => handleScrollToCatalog(cat)}
       />
 
       {/* INTERACTIVE CATALOG */}
@@ -125,6 +139,8 @@ export default function HomePage() {
         productos={productos}
         onAddToCart={handleAddToCart}
         onOpenProductModal={(p) => setSelectedProduct(p)}
+        selectedCategory={catalogCategory}
+        onSelectCategory={setCatalogCategory}
       />
 
       {/* FOOTER */}

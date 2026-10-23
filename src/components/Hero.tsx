@@ -1,14 +1,21 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sparkles, MapPin, Send, ExternalLink, MessageCircle, ArrowRight } from "lucide-react";
+import { Sparkles, MapPin, Send, ExternalLink, MessageCircle, ArrowRight, Award } from "lucide-react";
+import { Interactive3DCard } from "./Interactive3DCard";
+import { WaxSealBadge } from "./WaxSealBadge";
 
 interface HeroProps {
   onCheckPhone: (phone: string) => void;
   onExploreCatalog: () => void;
+  onOpenClubModal: () => void;
 }
 
-export const Hero: React.FC<HeroProps> = ({ onCheckPhone, onExploreCatalog }) => {
+export const Hero: React.FC<HeroProps> = ({
+  onCheckPhone,
+  onExploreCatalog,
+  onOpenClubModal,
+}) => {
   const [quickPhone, setQuickPhone] = useState("");
 
   const handleQuickSubmit = (e: React.FormEvent) => {
@@ -55,7 +62,7 @@ export const Hero: React.FC<HeroProps> = ({ onCheckPhone, onExploreCatalog }) =>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
           {/* ========================================================= */}
-          {/* LEFT COLUMN: TITLE, CTAs, LOYALTY WIDGET & LOCATION CARD */}
+          {/* LEFT COLUMN: TITLE, CTAs, 3D LOYALTY CARD & LOCATION CARD */}
           {/* ========================================================= */}
           <div className="lg:col-span-7 flex flex-col space-y-6 sm:space-y-7">
             
@@ -100,73 +107,23 @@ export const Hero: React.FC<HeroProps> = ({ onCheckPhone, onExploreCatalog }) =>
             </div>
 
             {/* --------------------------------------------------------- */}
-            {/* TARJETA DE FIDELIDAD VECAR CLUB (Exact match to Mockup)   */}
+            {/* TARJETA 3D INTERACTIVA VECAR CLUB (Apple Fluid Tilt)      */}
             {/* --------------------------------------------------------- */}
-            <div className="p-5 sm:p-6 rounded-2xl glass-emerald border border-gold-400/30 shadow-2xl relative overflow-hidden group">
-              
-              {/* Subtle gold ribbon top right */}
-              <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-gold-400/10 to-transparent rounded-bl-full pointer-events-none" />
-
-              <div className="flex items-center justify-between mb-3.5">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-gold-400 animate-pulse" />
-                  <h3 className="text-xs sm:text-sm font-semibold tracking-[0.18em] uppercase text-gold-300">
-                    TARJETA DE FIDELIDAD VECAR CLUB
-                  </h3>
-                </div>
-                <span className="text-[11px] font-medium text-emerald-300/80 tracking-wide">
-                  10 Sellos = 1 Gratis
-                </span>
-              </div>
-
-              {/* 10 SELLOS DISPLAY (5 activos color vino con borde oro, 5 vacíos punteados) */}
-              <div className="grid grid-cols-5 sm:grid-cols-10 gap-2 sm:gap-2.5 my-3 py-1">
-                {/* 5 Sellos llenos */}
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div
-                    key={`filled-${i}`}
-                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#5c1a29] border-2 border-gold-400 flex flex-col items-center justify-center shadow-md transform hover:scale-110 transition-transform cursor-pointer"
-                    title={`Sello ${i}: 50ml acumulado`}
-                  >
-                    <span className="text-[9px] font-bold text-gold-200 tracking-tighter">50ml</span>
-                    <span className="text-[7px] text-gold-400/90 font-mono">#{i}</span>
-                  </div>
-                ))}
-
-                {/* 5 Sellos vacíos punteados */}
-                {[6, 7, 8, 9, 10].map((i) => (
-                  <div
-                    key={`empty-${i}`}
-                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 border-dashed border-gold-400/40 bg-emerald-950/40 flex flex-col items-center justify-center opacity-70 hover:opacity-100 hover:border-gold-300 transition-all cursor-pointer"
-                    title={i === 10 ? "¡Sello 10: PERFUME 50ML GRATIS!" : `Sello ${i} pendiente`}
-                  >
-                    {i === 10 ? (
-                      <span className="text-[9px] font-bold text-gold-400 tracking-tighter animate-pulse">
-                        🎁 GRATIS
-                      </span>
-                    ) : (
-                      <span className="text-[9px] font-medium text-gold-400/60">{i}</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              <p className="text-xs sm:text-sm text-emerald-100/90 font-medium mb-3">
-                ¡Completa tus 10 sellos y recibe un perfume de 50ml gratis!
-              </p>
+            <div className="space-y-3">
+              <Interactive3DCard onOpenClubModal={onOpenClubModal} />
 
               {/* Quick Input to check customer stamps */}
-              <form onSubmit={handleQuickSubmit} className="relative flex items-center">
+              <form onSubmit={handleQuickSubmit} className="relative flex items-center pt-1">
                 <input
                   type="text"
                   value={quickPhone}
                   onChange={(e) => setQuickPhone(e.target.value)}
                   placeholder="Ingresa tu celular para consultar tus sellos..."
-                  className="w-full pl-4 pr-28 py-2.5 rounded-full text-xs sm:text-sm bg-emerald-950/80 border border-gold-400/30 text-white placeholder-emerald-200/50 focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all"
+                  className="w-full pl-5 pr-28 py-3 rounded-full text-xs sm:text-sm bg-emerald-950/80 border border-gold-400/40 text-white placeholder-emerald-200/50 focus:outline-none focus:border-gold-400 focus:ring-1 focus:ring-gold-400 transition-all shadow-inner"
                 />
                 <button
                   type="submit"
-                  className="absolute right-1 px-4 py-1.5 rounded-full text-xs font-semibold text-emerald-950 bg-gold-gradient hover:bg-gold-gradient-hover shadow-sm transition-all"
+                  className="absolute right-1.5 px-5 py-2 rounded-full text-xs font-bold tracking-wider uppercase text-emerald-950 bg-gold-gradient hover:bg-gold-gradient-hover shadow-md transition-all active:scale-95"
                 >
                   Consultar
                 </button>
@@ -174,7 +131,7 @@ export const Hero: React.FC<HeroProps> = ({ onCheckPhone, onExploreCatalog }) =>
             </div>
 
             {/* --------------------------------------------------------- */}
-            {/* VISÍTANOS EN COCHABAMBA CARD (Exact match to Mockup)       */}
+            {/* VISÍTANOS EN COCHABAMBA CARD                               */}
             {/* --------------------------------------------------------- */}
             <div className="p-4 sm:p-5 rounded-2xl glass-emerald-subtle border border-gold-400/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               
@@ -224,9 +181,15 @@ export const Hero: React.FC<HeroProps> = ({ onCheckPhone, onExploreCatalog }) =>
           </div>
 
           {/* ========================================================= */}
-          {/* RIGHT COLUMN: LUXURY PERFUME SHOWCASE (Golden Frame)      */}
+          {/* RIGHT COLUMN: LUXURY PERFUME SHOWCASE + 3D WAX SEAL BADGE */}
           {/* ========================================================= */}
-          <div className="lg:col-span-5 flex justify-center lg:justify-end">
+          <div className="lg:col-span-5 flex flex-col items-center justify-center relative">
+            
+            {/* FLOATING 3D WAX SEAL BADGE (From Opción 8) */}
+            <div className="absolute -top-6 -right-2 sm:-right-4 z-30 animate-float-slow">
+              <WaxSealBadge onOpenClubModal={onOpenClubModal} />
+            </div>
+
             <div className="relative w-full max-w-md aspect-[4/5] rounded-3xl p-3 sm:p-4 bg-gradient-to-b from-gold-400/30 via-gold-500/10 to-emerald-900/40 border-2 border-gold-400/60 shadow-gold-glow-lg group">
               
               {/* Inner Luxury Frame */}
@@ -269,7 +232,7 @@ export const Hero: React.FC<HeroProps> = ({ onCheckPhone, onExploreCatalog }) =>
                 </div>
 
                 {/* Floating Sparkle Elements */}
-                <div className="absolute top-6 right-6 flex items-center gap-1 px-3 py-1 rounded-full bg-gold-400/20 border border-gold-400/50 backdrop-blur-md">
+                <div className="absolute top-6 left-6 flex items-center gap-1 px-3 py-1 rounded-full bg-gold-400/20 border border-gold-400/50 backdrop-blur-md">
                   <Sparkles className="w-3.5 h-3.5 text-gold-300 animate-spin" style={{ animationDuration: '4s' }} />
                   <span className="text-[10px] font-bold text-gold-200 tracking-wider">
                     ALTA CONCENTRACIÓN

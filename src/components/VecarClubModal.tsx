@@ -5,6 +5,7 @@ import { Cliente } from "@/types/database";
 import { findCliente, registerCliente } from "@/lib/dataService";
 import { X, Search, Award, Gift, Sparkles, CheckCircle2, UserPlus, Phone, Mail, Calendar } from "lucide-react";
 import confetti from "canvas-confetti";
+import { Interactive3DCard } from "./Interactive3DCard";
 
 interface VecarClubModalProps {
   isOpen: boolean;
@@ -155,79 +156,8 @@ export const VecarClubModal: React.FC<VecarClubModalProps> = ({
         {/* RESULT: CLIENT CARD FOUND */}
         {cliente && (
           <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
-            {/* VIP CARD */}
-            <div className="rounded-2xl p-6 bg-gradient-to-br from-[#0e3328] via-[#09221b] to-[#04110d] border-2 border-gold-400/60 shadow-gold-glow relative overflow-hidden">
-              
-              {/* Background watermark */}
-              <div className="absolute -right-8 -bottom-8 opacity-10 pointer-events-none">
-                <Award className="w-48 h-48 text-gold-400" />
-              </div>
-
-              {/* CARD TOP */}
-              <div className="flex items-center justify-between pb-4 border-b border-gold-400/20">
-                <div>
-                  <span className="text-[10px] font-mono tracking-widest uppercase text-gold-400">
-                    MEMBRESÍA OFICIAL
-                  </span>
-                  <h4 className="font-serif text-xl sm:text-2xl font-bold text-white tracking-wide">
-                    {cliente.nombre_completo}
-                  </h4>
-                  <p className="text-xs text-emerald-200/70 font-mono mt-0.5">
-                    Telf: {cliente.telefono} • {cliente.email}
-                  </p>
-                </div>
-
-                <div className="text-right">
-                  <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-emerald-950 bg-gold-400 shadow-sm inline-block">
-                    {cliente.sellos_acumulados >= 10 ? "PREMIO LISTO" : "SOCIO ACTIVO"}
-                  </span>
-                  <p className="text-[10px] text-gold-300 font-mono mt-1">
-                    Cochabamba, BO
-                  </p>
-                </div>
-              </div>
-
-              {/* 10 STAMPS GRID */}
-              <div className="my-5">
-                <div className="flex items-center justify-between mb-3 text-xs">
-                  <span className="text-gold-300 font-medium">Sellos Digitales Acumulados</span>
-                  <span className="font-bold font-mono text-gold-400">
-                    {cliente.sellos_acumulados} / 10
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-5 sm:grid-cols-10 gap-2 sm:gap-2.5">
-                  {Array.from({ length: 10 }).map((_, idx) => {
-                    const stampNum = idx + 1;
-                    const isFilled = stampNum <= cliente.sellos_acumulados;
-                    const isGift = stampNum === 10;
-
-                    return (
-                      <div
-                        key={idx}
-                        className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex flex-col items-center justify-center transition-all duration-300 ${
-                          isFilled
-                            ? "bg-[#5c1a29] border-2 border-gold-400 shadow-md scale-105"
-                            : "border-2 border-dashed border-gold-400/40 bg-emerald-950/50 opacity-60"
-                        }`}
-                      >
-                        {isFilled ? (
-                          <>
-                            <span className="text-[9px] font-bold text-gold-200">50ml</span>
-                            <span className="text-[7px] text-gold-400/90 font-mono">#{stampNum}</span>
-                          </>
-                        ) : isGift ? (
-                          <Gift className="w-4 h-4 text-gold-400 animate-pulse" />
-                        ) : (
-                          <span className="text-[9px] font-medium text-gold-400/60 font-mono">
-                            {stampNum}
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+            {/* 3D VIP CARD */}
+            <Interactive3DCard cliente={cliente} interactive={true} />
 
               {/* PROGRESS STATUS ALERT */}
               {cliente.sellos_acumulados >= 10 ? (
@@ -267,8 +197,6 @@ export const VecarClubModal: React.FC<VecarClubModalProps> = ({
                   </span>
                 </a>
               </div>
-
-            </div>
 
             {/* MEMBER PERKS LIST */}
             <div className="p-4 rounded-2xl glass-emerald-subtle border border-gold-400/20 text-xs space-y-2">
